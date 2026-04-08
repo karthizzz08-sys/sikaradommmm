@@ -5,6 +5,10 @@ export interface BookingRecord {
   date: string;
   customerName: string;
   phone: string;
+  hallDuration: string;
+  hallHalfMode: '' | 'morning' | 'evening';
+  hallStartTime: string;
+  hallEndTime: string;
   totalAmount: number;
   advanceAmount: number;
   status: 'pending' | 'confirmed' | 'completed';
@@ -44,6 +48,9 @@ export interface BookingState {
   customerPhone: string;
   customerEmail: string;
   eventDate: Date | null;
+  hallStartTime: string;
+  hallEndTime: string;
+  hallHalfMode: '' | 'morning' | 'evening';
   // Booking history
   bookingHistory: BookingRecord[];
 
@@ -90,6 +97,9 @@ export const useBookingStore = create<BookingState>((set) => ({
   customerPhone: '',
   customerEmail: '',
   eventDate: null,
+  hallStartTime: '',
+  hallEndTime: '',
+  hallHalfMode: '',
   bookingHistory: loadHistory(),
 
   setHallDuration: (id) => set({ hallDuration: id }),
@@ -115,7 +125,7 @@ export const useBookingStore = create<BookingState>((set) => ({
     if (exists) {
       return { selectedCatering: s.selectedCatering.filter(x => x.packageId !== id) };
     }
-    return { selectedCatering: [...s.selectedCatering, { packageId: id, headCount: 100 }] };
+    return { selectedCatering: [...s.selectedCatering, { packageId: id, headCount: 50 }] };
   }),
   setCateringHeadCount: (id, count) => set((s) => ({
     selectedCatering: s.selectedCatering.map(x => x.packageId === id ? { ...x, headCount: count } : x)
@@ -136,6 +146,9 @@ export const useBookingStore = create<BookingState>((set) => ({
   setCustomerPhone: (p) => set({ customerPhone: p }),
   setCustomerEmail: (e) => set({ customerEmail: e }),
   setEventDate: (d) => set({ eventDate: d }),
+  setHallStartTime: (t) => set({ hallStartTime: t }),
+  setHallEndTime: (t) => set({ hallEndTime: t }),
+  setHallHalfMode: (mode) => set({ hallHalfMode: mode }),
   addBooking: (record) => set((s) => {
     const updated = [record, ...s.bookingHistory];
     localStorage.setItem('sikara-bookings', JSON.stringify(updated));
@@ -156,5 +169,8 @@ export const useBookingStore = create<BookingState>((set) => ({
     customerPhone: '',
     customerEmail: '',
     eventDate: null,
+    hallStartTime: '',
+    hallEndTime: '',
+    hallHalfMode: '',
   }),
 }));

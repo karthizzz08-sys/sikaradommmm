@@ -8,34 +8,64 @@ import { Button } from '@/components/ui/button';
 
 const AvailabilityChecker = () => {
   const [selected, setSelected] = useState<Date | undefined>();
-  const [bookedDates, setBookedDates] = useState<Date[]>([]);
-  const { setEventDate } = useBookingStore();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
 
+  const { setEventDate, setHallStartTime, setHallEndTime } = useBookingStore();
+
+  // Fetch date + time bookings
   useEffect(() => {
     const fetchDates = async () => {
-      const { data } = await supabase.from('availability').select('date');
-      if (data) {
-        setBookedDates(data.map(d => new Date(d.date + 'T00:00:00')));
-      }
+      const { data } = await supabase
+        .from('availability')
+        .select('date, start_time, end_time');
+
+      if (data) setBookings(data);
     };
     fetchDates();
   }, []);
 
-  const isBooked = selected
-    ? bookedDates.some(d => d.toDateString() === selected.toDateString())
-    : null;
+  // Check time overlap
+  const isTimeBooked = () => {
+    if (!selected || !startTime || !endTime) return false;
 
+    const selectedDate = selected.toISOString().split('T')[0];
+
+    return bookings.some((b) => {
+      return (
+        b.date === selectedDate &&
+        startTime < b.end_time &&
+        endTime > b.start_time
+      );
+    });
+  };
+
+  // Handle confirm
   const handleSelectDate = () => {
-    if (selected && !isBooked) {
-      setEventDate(selected);
-      const el = document.getElementById('booking');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    if (!selected || !startTime || !endTime) {
+      alert('Please select date and time');
+      return;
     }
+
+    if (isTimeBooked()) {
+      alert('This time slot is already booked');
+      return;
+    }
+
+    setEventDate(selected);
+    setHallStartTime(startTime);
+    setHallEndTime(endTime);
+
+    const el = document.getElementById('booking');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
     <section id="availability" className="py-20 px-4">
       <div className="container max-w-xl mx-auto">
+
+        {/* HEADER */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -46,55 +76,91 @@ const AvailabilityChecker = () => {
             <CalendarCheck className="inline w-4 h-4 mr-1" /> Availability
           </span>
           <h2 className="section-title mt-2">Check Availability</h2>
-          <p className="section-subtitle mt-3">Select a date to check hall availability</p>
+          <p className="section-subtitle mt-3">
+            Select date and time to check hall availability
+          </p>
         </motion.div>
 
         <div className="glass-card p-6 flex flex-col items-center">
+
+          {/* CALENDAR */}
           <Calendar
             mode="single"
             selected={selected}
             onSelect={setSelected}
             disabled={(date) => date < new Date()}
             className="p-3 pointer-events-auto"
-            modifiers={{ booked: bookedDates }}
-            modifiersStyles={{
-              booked: { backgroundColor: 'hsl(0 84.2% 60.2% / 0.2)', color: 'hsl(0 84.2% 60.2%)' },
-            }}
           />
 
+          {/* TIME PICKER */}
           {selected && (
+            <div className="mt-4 w-full flex flex-col gap-3">
+
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="border rounded p-2 w-full"
+              />
+
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                className="border rounded p-2 w-full"
+              />
+
+            </div>
+          )}
+
+          {/* STATUS */}
+          {selected && startTime && endTime && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 flex flex-col items-center gap-3"
             >
-              <div className={`flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm ${
-                isBooked
-                  ? 'bg-destructive/10 text-destructive'
-                  : 'bg-green-100 text-green-700'
-              }`}>
-                {isBooked ? (
-                  <><XCircle className="w-4 h-4" /> Already booked on this date</>
+              <div
+                className={`flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm ${
+                  isTimeBooked()
+                    ? 'bg-destructive/10 text-destructive'
+                    : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {isTimeBooked() ? (
+                  <>
+                    <XCircle className="w-4 h-4" />
+                    Time Slot Already Booked
+                  </>
                 ) : (
-                  <><CheckCircle2 className="w-4 h-4" /> Available! Select this date</>
+                  <>
+                    <CheckCircle2 className="w-4 h-4" />
+                    Time Slot Available
+                  </>
                 )}
               </div>
-              {!isBooked && (
-                <Button onClick={handleSelectDate} className="gradient-violet text-primary-foreground rounded-full px-6">
-                  Select This Date & Book Now
+
+              {!isTimeBooked() && (
+                <Button
+                  onClick={handleSelectDate}
+                  className="gradient-violet text-primary-foreground rounded-full px-6"
+                >
+                  Confirm Time & Book Now
                 </Button>
               )}
             </motion.div>
           )}
 
+          {/* LEGEND */}
           <div className="flex gap-4 mt-4 text-xs text-muted-foreground">
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-destructive/20 border border-destructive/40" /> Booked
+              <span className="w-3 h-3 rounded-full bg-destructive/20 border border-destructive/40" /> Booked Slot
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-3 h-3 rounded-full bg-green-100 border border-green-400" /> Available
+              <span className="w-3 h-3 rounded-full bg-green-100 border border-green-400" /> Available Slot
             </span>
           </div>
+
         </div>
       </div>
     </section>

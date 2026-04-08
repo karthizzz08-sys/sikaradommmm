@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useBookingStore, BookingRecord } from '@/lib/bookingStore';
-import { formatPrice } from '@/lib/bookingData';
+import { hallDurations, formatPrice, formatPriceForPdf, formatTimeToAmPm } from '@/lib/bookingData';
 import { Download, CheckCircle2, ClipboardList } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
@@ -34,6 +34,12 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.text(`Booking ID: ${b.id}`, 15, y); y += 6;
   doc.text(`Event Date: ${b.date}`, 15, y); y += 6;
   doc.text(`Status: Successfully Booked`, 15, y); y += 10;
+  const hallLabel = b.hallDuration ? hallDurations.find(d => d.id === b.hallDuration)?.label ?? b.hallDuration : 'Not Selected';
+  const hallStart = b.hallStartTime ? formatTimeToAmPm(b.hallStartTime) : 'Not Selected';
+  const hallEnd = b.hallEndTime ? formatTimeToAmPm(b.hallEndTime) : 'Not Selected';
+  doc.text(`Hall: ${hallLabel}`, 15, y); y += 6;
+  doc.text(`Start Time: ${hallStart}`, 15, y); y += 6;
+  doc.text(`End Time: ${hallEnd}`, 15, y); y += 10;
 
   // Customer
   doc.setFont('helvetica', 'bold');
@@ -65,18 +71,18 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   doc.text(`Total Amount:`, 20, y);
-  doc.text(formatPrice(b.totalAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
+  doc.text(formatPriceForPdf(b.totalAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
   if (b.discount > 0) {
     doc.setTextColor(220, 50, 50);
     doc.text(`10% Discount:`, 20, y);
-    doc.text(`-${formatPrice(b.discount)}`, pageWidth - 20, y, { align: 'right' }); y += 6;
+    doc.text(`-${formatPriceForPdf(b.discount)}`, pageWidth - 20, y, { align: 'right' }); y += 6;
     doc.setTextColor(0, 0, 0);
   }
   doc.text(`Advance Paid (10%):`, 20, y);
-  doc.text(formatPrice(b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
+  doc.text(formatPriceForPdf(b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
   doc.setFont('helvetica', 'bold');
   doc.text(`Balance Due:`, 20, y);
-  doc.text(formatPrice(b.totalAmount - b.discount - b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 12;
+  doc.text(formatPriceForPdf(b.totalAmount - b.discount - b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 12;
 
   // Contact
   doc.setFont('helvetica', 'normal');
@@ -119,6 +125,7 @@ const BookingHistory = () => {
                 <div className="min-w-0">
                   <h3 className="font-display text-base sm:text-lg font-bold text-foreground truncate">{b.customerName}</h3>
                   <p className="text-muted-foreground text-xs sm:text-sm">📅 {b.date} • 📱 {b.phone}</p>
+                  <p className="text-muted-foreground text-xs sm:text-sm">⏰ {b.hallStartTime ? formatTimeToAmPm(b.hallStartTime) : 'Start: Not Selected'} - {b.hallEndTime ? formatTimeToAmPm(b.hallEndTime) : 'End: Not Selected'}</p>
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-accent text-primary flex items-center gap-1 w-fit">
                   <CheckCircle2 className="w-3 h-3" />

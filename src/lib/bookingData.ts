@@ -180,11 +180,87 @@ export const eventItems: EventItem[] = [
 
 // ─── EXISTING DATA ───
 
+export type CateringCategory = 'tiffen' | 'lunch' | 'dinner';
+
 export const hallDurations: HallDuration[] = [
-  { id: '4hrs', label: '4 Hours', timing: 'Flexible timing', price: 25000 },
-  { id: 'half', label: 'Half Day', timing: '6:00 AM – 4:00 PM', price: 35000 },
+  { id: '4hrs', label: '4 Hours', timing: 'Choose start and end time', price: 25000 },
+  { id: 'half', label: 'Half Day', timing: '1:00 AM – 4:00 PM or 4:00 PM – 4:00 PM', price: 35000 },
   { id: 'full', label: 'Full Day', timing: '4:00 PM – 4:00 PM', price: 55000 },
 ];
+
+const parseTime = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+export const parseTimeToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
+};
+
+export const formatMinutesToTime = (minutes: number) => {
+  const normalized = ((minutes % (24 * 60)) + 24 * 60) % (24 * 60);
+  const hour = Math.floor(normalized / 60);
+  const minute = normalized % 60;
+  return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+};
+
+export const formatTimeToAmPm = (time: string) => {
+  if (!time) return 'Not Selected';
+  const [hours, minutes] = time.split(':').map(Number);
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) return 'Not Selected';
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hour12 = hours % 12 === 0 ? 12 : hours % 12;
+  return `${hour12.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+};
+
+const normalizeInterval = (start: number, end: number) => {
+  if (end <= start) return [start, end + 24 * 60];
+  return [start, end];
+};
+
+export const timeIntervalsOverlap = (
+  startA: string,
+  endA: string,
+  startB: string,
+  endB: string,
+) => {
+  const [aStart, aEnd] = normalizeInterval(parseTime(startA), parseTime(endA));
+  const [bStart, bEnd] = normalizeInterval(parseTime(startB), parseTime(endB));
+  return aStart < bEnd && bStart < aEnd;
+};
+
+export const getAllowedCateringCategories = (
+  hallDuration: string | null,
+  hallStartTime: string,
+  hallHalfMode: '' | 'morning' | 'evening'
+): CateringCategory[] => {
+  if (hallDuration === 'full') {
+    return ['tiffen', 'lunch', 'dinner'];
+  }
+
+  if (hallDuration === 'half') {
+    if (hallHalfMode === 'morning') return ['tiffen', 'lunch'];
+    if (hallHalfMode === 'evening') return ['tiffen', 'lunch', 'dinner'];
+    return [];
+  }
+
+  if (hallDuration === '4hrs' && hallStartTime) {
+    const [hours, minutes] = hallStartTime.split(':').map(Number);
+    const totalMinutes = hours * 60 + minutes;
+    if (totalMinutes >= 60 && totalMinutes < 660) return ['tiffen'];
+    if (totalMinutes >= 660 && totalMinutes < 960) return ['lunch'];
+    if (totalMinutes >= 960 && totalMinutes <= 1320) return ['dinner'];
+    return [];
+  }
+
+  return [];
+};
+
+export const formatHallTimeRange = (start: string, end: string) => {
+  if (!start || !end) return '';
+  return `${start} - ${end}`;
+};
 
 export const additionalCharges: AdditionalCharge[] = [
   { id: 'electricity', label: 'Electricity (EB)', rate: '₹30', unit: 'per unit', icon: '⚡' },
@@ -252,6 +328,17 @@ export const decorationItems: DecorationItem[] = [
   { id: 'outdoor-arch', name: 'Wedding Car Decoration', price: 5000, description: 'Beautiful car décor with flowers & ribbons', icon: '🏛️' },
 ];
 
+const rupeeFormatter = new Intl.NumberFormat('en-IN', {
+  style: 'currency',
+  currency: 'INR',
+  maximumFractionDigits: 0,
+});
+
 export function formatPrice(amount: number): string {
-  return '₹' + amount.toLocaleString('en-IN');
+  return rupeeFormatter.format(amount);
+}
+
+export function formatPriceForPdf(amount: number): string {
+  const formattedNumber = amount.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  return `Rs ${formattedNumber}`;
 }

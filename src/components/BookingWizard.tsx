@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/lib/bookingStore';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
-  salonPackages, cateringPackages, formatPrice,
+  salonPackages, cateringPackages, formatPrice, timeIntervalsOverlap,
+  formatTimeToAmPm,
 } from '@/lib/bookingData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -50,7 +51,13 @@ const BookingWizard = () => {
     const items: string[] = [];
     if (store.hallDuration) {
       const h = hallDurations.find(d => d.id === store.hallDuration);
-      items.push(`Hall: ${h?.label} (${h?.timing})`);
+      items.push(`Hall: ${h?.label}`);
+      if (store.hallDuration === '4hrs') {
+        items.push(`Start Time: ${store.hallStartTime ? formatTimeToAmPm(store.hallStartTime) : 'Not Selected'}`);
+        items.push(`End Time: ${store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected'}`);
+      } else {
+        items.push(`Timing: ${h?.timing || 'Not Selected'}`);
+      }
     }
     if (store.photoPackageId) {
       const p = photoPackages.find(x => x.id === store.photoPackageId);
@@ -81,27 +88,45 @@ const BookingWizard = () => {
       return;
     }
 
+    if (store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime)) {
+      toast.error('Please select both start and end time for the 4-hour hall booking.');
+      return;
+    }
+
     const selections = getSelectionSummary();
     const booking = {
       id: Date.now().toString(),
       date: store.eventDate ? format(store.eventDate, 'dd/MM/yyyy') : 'TBD',
       customerName: store.customerName,
       phone: store.customerPhone,
+      hallDuration: store.hallDuration ?? '',
+      hallHalfMode: store.hallHalfMode,
+      hallStartTime: store.hallStartTime,
+      hallEndTime: store.hallEndTime,
       totalAmount: grandTotal,
       advanceAmount,
       status: 'confirmed' as const,
       selections,
       discount,
     };
+    console.log('Booking payload:', booking);
     store.addBooking(booking);
 
+    const halfDayModeLabel = store.hallHalfMode === 'morning' ? 'Morning' : store.hallHalfMode === 'evening' ? 'Evening' : '';
+    const hallLabel = store.hallDuration ? hallDurations.find(d => d.id === store.hallDuration)?.label ?? store.hallDuration : 'Not Selected';
+    const hallStartLabel = store.hallStartTime ? formatTimeToAmPm(store.hallStartTime) : 'Not Selected';
+    const hallEndLabel = store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected';
     const msg = encodeURIComponent(
       `🏛️ *Sikara Mahal Booking*\n\n` +
       `👤 Name: ${store.customerName}\n` +
       `📱 Phone: ${store.customerPhone}\n` +
       `📧 Email: ${store.customerEmail || 'N/A'}\n` +
       `📅 Date: ${booking.date}\n` +
-      (hallTiming ? `⏰ Timing: ${hallTiming}\n` : '') +
+      (store.hallDuration ? `🏛️ Hall: ${hallLabel}\n` : '') +
+      (store.hallDuration ? `⏰ Start Time: ${hallStartLabel}\n` : '') +
+      (store.hallDuration ? `⏰ End Time: ${hallEndLabel}\n` : '') +
+      (halfDayModeLabel ? `⏰ Half Day Mode: ${halfDayModeLabel}\n` : '') +
+      (store.eventTime ? `⏰ Event Time: ${store.eventTime}\n` : '') +
       `\n📋 *Selections:*\n${selections.map(s => `• ${s}`).join('\n')}\n\n` +
       `💰 *Subtotal: ${formatPrice(subtotal)}*\n` +
       `🎉 *10% Discount: -${formatPrice(discount)}*\n` +
@@ -205,6 +230,12 @@ const BookingWizard = () => {
                     <span className="font-semibold text-foreground">{format(store.eventDate, 'PPP')}</span>
                   </div>
                 )}
+                {store.eventTime && (
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-muted-foreground">Event Time</span>
+                    <span className="font-semibold text-foreground">{store.eventTime}</span>
+                  </div>
+                )}
                 <div className="border-t border-border pt-4 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Subtotal</span>
@@ -244,7 +275,8 @@ const BookingWizard = () => {
                 {store.eventDate && (
                   <div className="p-4 bg-accent rounded-lg">
                     <p className="text-sm font-semibold text-foreground">📅 Selected Event Date: {format(store.eventDate, 'PPP')}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Selected from availability checker</p>
+                    {store.eventTime && <p className="text-sm font-semibold text-foreground">⏰ Selected Time: {store.eventTime}</p>}
+                    <p className="text-xs text-muted-foreground mt-1">Selected from availability checker and time selector</p>
                   </div>
                 )}
                 {!store.eventDate && (
@@ -290,7 +322,14 @@ const BookingWizard = () => {
                   <p><span className="font-semibold">Name:</span> {store.customerName}</p>
                   <p><span className="font-semibold">Phone:</span> {store.customerPhone}</p>
                   <p><span className="font-semibold">Date:</span> {store.eventDate ? format(store.eventDate, 'PPP') : 'TBD'}</p>
-                  {hallTiming && <p><span className="font-semibold">Timing:</span> {hallTiming}</p>}
+                  {store.hallDuration && (
+                    <>
+                      <p><span className="font-semibold">Hall:</span> {hallDurations.find(d => d.id === store.hallDuration)?.label || 'Not Selected'}</p>
+                      <p><span className="font-semibold">Start Time:</span> {store.hallStartTime ? formatTimeToAmPm(store.hallStartTime) : 'Not Selected'}</p>
+                      <p><span className="font-semibold">End Time:</span> {store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected'}</p>
+                    </>
+                  )}
+                  {store.eventTime && <p><span className="font-semibold">Event Time:</span> {store.eventTime}</p>}
                   <p><span className="font-semibold">Subtotal:</span> {formatPrice(subtotal)}</p>
                   <p><span className="font-semibold">Discount (10%):</span> <span className="text-destructive">-{formatPrice(discount)}</span></p>
                   <p><span className="font-semibold">Total:</span> {formatPrice(grandTotal)}</p>

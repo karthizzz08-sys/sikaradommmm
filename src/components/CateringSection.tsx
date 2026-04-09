@@ -176,78 +176,85 @@ const CateringSection = () => {
           <h3 className="font-display text-2xl font-bold text-foreground mb-8 text-center">
             Add-On Menu Items
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {cateringAddOns.map((addon) => {
-              const sel = selectedCateringAddOns.find(x => x.id === addon.id);
-              const isSelected = !!sel;
-              return (
-                <label
-                  key={addon.id}
-                  className={`glass-card p-4 cursor-pointer transition-all hover:scale-[1.02] ${
-                    isSelected ? 'ring-2 ring-primary bg-accent' : ''
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <Checkbox
-                      checked={isSelected}
-                      onCheckedChange={() => toggleCateringAddOn(addon.id)}
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-lg">{addon.icon}</span>
-                        <p className="font-semibold text-foreground text-sm">{addon.name}</p>
-                      </div>
-                      <p className="text-primary font-bold">{formatPrice(addon.price)}</p>
-                      <p className="text-muted-foreground text-xs mb-2">{addon.unit}</p>
-                      {isSelected && (
-                        <div className="flex items-center gap-2 mt-3 bg-muted p-2 rounded-lg">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 w-7 rounded px-0 text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (sel && sel.qty > 1) {
-                                setCateringAddOnQty(addon.id, sel.qty - 1);
-                              }
-                            }}
-                            aria-label="Decrease quantity"
-                          >
-                            −
-                          </Button>
-                          <Input
-                            type="number"
-                            min={1}
-                            value={sel?.qty ?? 1}
-                            onChange={(e) => setCateringAddOnQty(addon.id, Math.max(1, Number(e.target.value)))}
-                            className="w-16 h-7 text-sm"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="h-7 w-7 rounded px-0 text-sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setCateringAddOnQty(addon.id, (sel?.qty ?? 1) + 1);
-                            }}
-                            aria-label="Increase quantity"
-                          >
-                            +
-                          </Button>
-                          <span className="text-xs font-semibold text-primary ml-auto">
-                            {formatPrice(addon.price * (sel?.qty ?? 1))}
-                          </span>
+          {(visibleCategories.includes('lunch') || visibleCategories.includes('dinner')) ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {cateringAddOns.map((addon) => {
+                const sel = selectedCateringAddOns.find(x => x.id === addon.id);
+                const isSelected = !!sel;
+                return (
+                  <label
+                    key={addon.id}
+                    className={`glass-card p-4 cursor-pointer transition-all hover:scale-[1.02] ${
+                      isSelected ? 'ring-2 ring-primary bg-accent' : ''
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={() => toggleCateringAddOn(addon.id)}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-lg">{addon.icon}</span>
+                          <p className="font-semibold text-foreground text-sm">{addon.name}</p>
                         </div>
-                      )}
+                        <p className="text-primary font-bold">{formatPrice(addon.price)}</p>
+                        <p className="text-muted-foreground text-xs mb-2">{addon.unit}</p>
+                        {isSelected && (
+                          <div className="flex items-center gap-2 mt-3 bg-muted p-2 rounded-lg">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 rounded px-0 text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (sel && sel.qty > 1) {
+                                  setCateringAddOnQty(addon.id, sel.qty - 1);
+                                }
+                              }}
+                              aria-label="Decrease quantity"
+                            >
+                              −
+                            </Button>
+                            <Input
+                              type="number"
+                              min={1}
+                              value={sel?.qty ?? 1}
+                              onChange={(e) => setCateringAddOnQty(addon.id, Math.max(1, Number(e.target.value)))}
+                              className="w-16 h-7 text-sm"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-7 w-7 rounded px-0 text-sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCateringAddOnQty(addon.id, (sel?.qty ?? 1) + 1);
+                              }}
+                              aria-label="Increase quantity"
+                            >
+                              +
+                            </Button>
+                            <span className="text-xs font-semibold text-primary ml-auto">
+                              {formatPrice(addon.price * (sel?.qty ?? 1))}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
+                  </label>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-border/70 bg-muted p-8 text-center text-sm text-muted-foreground">
+              <p>Add-on items are only available for Lunch and Dinner menus.</p>
+              <p className="mt-2 text-xs">Please select a lunch or dinner time slot to see available add-ons.</p>
+            </div>
+          )}
         </div>
 
         <div className="sticky bottom-0 left-0 right-0 z-20 mx-auto mt-8 w-full max-w-6xl rounded-t-3xl border border-border/70 bg-background/95 px-4 py-4 shadow-2xl shadow-slate-900/10 backdrop-blur-xl sm:px-6">

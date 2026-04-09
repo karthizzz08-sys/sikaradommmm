@@ -18,6 +18,7 @@ export interface Extra {
   label: string;
   price: number;
   icon: string;
+  unit?: string;
 }
 
 export interface PhotoPackage {
@@ -143,6 +144,13 @@ export const cateringPackages: CateringPackage[] = [
     category: 'lunch',
     includes: ['Bread Halwa','Chicken Biriyani(Seeraga Samba)','Elumbu Thalicha' ,'Fried Egg','Chicken Gravy', 'Carrot Onion Raitha', 'Puli Kathrika', 'Curd Rice With Fruits','Live Beeda', 'Hot Badam Milk', 'Ice Cream', 'Water Bottle', 'Vaalai Ilia','Paper Roll', 'Serving & Cleaning'],
   },
+  {
+    id: 'lunch-veg-custom',
+    name: 'Veg Lunch (Traditional)',
+    pricePerHead: 300,
+    category: 'lunch',
+    includes: ['Halwa', 'Ponni Arisi Soru', 'Kalyana Sambar', 'Kovai Milagu Rasam', 'Vatha Kulambu', 'Urulaikilangu Double Beans Roast', 'Pachapayir Carrot Poriyal', 'Chow Chow Senai Kootu', 'Appalam', 'Gothumai Rava Payasam', 'Medhu Vadai', 'Mango Pickle', 'Water Bottle', 'Ice Cream', 'Banana Leaf', 'Paper Roll & Service'],
+  },
   // Dinner
   {
   id: 'dinner-450',
@@ -232,6 +240,23 @@ export const cateringPackages: CateringPackage[] = [
 },
 ];
 
+// ─── CATERING ADD-ONS ───
+export interface CateringAddOn {
+  id: string;
+  name: string;
+  price: number;
+  unit: string;
+  icon: string;
+}
+
+export const cateringAddOns: CateringAddOn[] = [
+  { id: 'chicken-65', name: 'Chicken 65', price: 5000, unit: 'per 100 nos', icon: '🍗' },
+  { id: 'paneer-65', name: 'Paneer 65', price: 3500, unit: 'per 100 nos', icon: '🧀' },
+  { id: 'fish-65', name: 'Fish 65', price: 4500, unit: 'per 100 nos', icon: '🐟' },
+  { id: 'veg-biryani', name: 'Veg Biryani', price: 150, unit: 'per head', icon: '🍚' },
+  { id: 'mutton-biryani', name: 'Mutton Biryani', price: 200, unit: 'per head', icon: '🍛' },
+];
+
 // ─── EVENT ITEMS (detailed) ───
 export interface EventItem {
   id: string;
@@ -241,27 +266,28 @@ export interface EventItem {
   defaultQty: number;
   minQty: number;
   category: string;
+  image?: string;
 }
 
 export const eventItems: EventItem[] = [
   // Welcome Setup
-  { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
-  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
-  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
+  { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/gallery-1.jpg' },
+  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/catering-1.jpg' },
+  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/gallery-2.jpg' },
   // Plates & Entry
-  { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'seer-plate', name: 'Sendhana Kungumam', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'cream-plate', name: 'Cream Plate', basePrice: 250, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-entrance.jpg' },
+  { id: 'seer-plate', name: 'Santhanam & Kumkumam & Paneer ', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-table.jpg' },
+  { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-3.jpg' },
+  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/catering-2.jpg' },
+  { id: 'cream-plate', name: 'Vetrilai Paakku Plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/catering-3.jpg' },
+  { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-table.jpg' },
   // Decorations & Effects
-  { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'dj-dance', name: 'DJ & Dance', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'chariot-entry', name: 'Chariot Entry', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'bubble-effect', name: 'Bubble Effect', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'ice-smoke-entry', name: 'Ice Smoke Entry', basePrice: 5000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
+  { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-stage.jpg' },
+  { id: 'dj-dance', name: 'DJ & Dance', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-4.jpg' },
+  { id: 'chariot-entry', name: 'Chariot Entry', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-5.jpg' },
+  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-1.jpg' },
+  { id: 'bubble-effect', name: 'Bubble Effect', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-2.jpg' },
+  { id: 'ice-smoke-entry', name: 'Ice Smoke Entry', basePrice: 5000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-6.jpg' },
 ];
 
 // ─── EXISTING DATA ───
@@ -362,6 +388,7 @@ export const extras: Extra[] = [
   { id: 'pyro', label: 'Pyro Burst', price: 1500, icon: '🎆' },
   { id: 'paper', label: 'Paper Burst', price: 1500, icon: '🎊' },
   { id: 'selfie', label: '360° Selfie Booth', price: 7500, icon: '📸' },
+  { id: 'chicken-65', label: 'Chicken 65', price: 5000, icon: '🍗', unit: 'per 100 nos' },
 ];
 
 export const photoPackages: PhotoPackage[] = [

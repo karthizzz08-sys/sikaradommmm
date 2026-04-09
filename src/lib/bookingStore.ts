@@ -26,6 +26,11 @@ export interface CateringSelection {
   headCount: number;
 }
 
+export interface CateringAddOnSelection {
+  id: string;
+  qty: number;
+}
+
 export interface BookingState {
   // Hall
   hallDuration: string | null;
@@ -39,6 +44,7 @@ export interface BookingState {
   selectedSalonIds: string[];
   // Catering
   selectedCatering: CateringSelection[];
+  selectedCateringAddOns: CateringAddOnSelection[];
   // Event items (detailed)
   selectedEventItems: EventItemSelection[];
   // Payment
@@ -63,6 +69,8 @@ export interface BookingState {
   toggleSalon: (id: string) => void;
   toggleCatering: (id: string) => void;
   setCateringHeadCount: (id: string, count: number) => void;
+  toggleCateringAddOn: (id: string) => void;
+  setCateringAddOnQty: (id: string, qty: number) => void;
   toggleEventItem: (id: string) => void;
   setEventItemQty: (id: string, qty: number) => void;
   setTransactionId: (id: string) => void;
@@ -90,6 +98,7 @@ export const useBookingStore = create<BookingState>((set) => ({
   selectedDecorations: [],
   selectedSalonIds: [],
   selectedCatering: [],
+  selectedCateringAddOns: [],
   selectedEventItems: [],
   transactionId: '',
   paymentScreenshot: null,
@@ -130,6 +139,16 @@ export const useBookingStore = create<BookingState>((set) => ({
   setCateringHeadCount: (id, count) => set((s) => ({
     selectedCatering: s.selectedCatering.map(x => x.packageId === id ? { ...x, headCount: count } : x)
   })),
+  toggleCateringAddOn: (id) => set((s) => {
+    const exists = s.selectedCateringAddOns.find(x => x.id === id);
+    if (exists) {
+      return { selectedCateringAddOns: s.selectedCateringAddOns.filter(x => x.id !== id) };
+    }
+    return { selectedCateringAddOns: [...s.selectedCateringAddOns, { id, qty: 1 }] };
+  }),
+  setCateringAddOnQty: (id, qty) => set((s) => ({
+    selectedCateringAddOns: s.selectedCateringAddOns.map(x => x.id === id ? { ...x, qty } : x)
+  })),
   toggleEventItem: (id) => set((s) => {
     const exists = s.selectedEventItems.find(x => x.id === id);
     if (exists) {
@@ -162,6 +181,7 @@ export const useBookingStore = create<BookingState>((set) => ({
     selectedDecorations: [],
     selectedSalonIds: [],
     selectedCatering: [],
+    selectedCateringAddOns: [],
     selectedEventItems: [],
     transactionId: '',
     paymentScreenshot: null,

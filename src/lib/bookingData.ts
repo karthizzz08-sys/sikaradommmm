@@ -51,20 +51,41 @@ export const salonPackages: SalonPackage[] = [
   {
     id: 'normal-makeup',
     name: 'Normal Make Up',
-    price: 14999,
+    price: 7499,
     includes: ['Makeup', 'Gold Facial', 'Waxing', 'Manicure & Pedicure', 'Threading', 'Hair Spa', 'Hair Cut'],
   },
   {
     id: 'hd-makeup',
     name: 'HD Make Up',
-    price: 29999,
+    price: 14999,
     includes: ['HD Makeup', 'O3+ Facial', 'Full Waxing', 'Manicure & Pedicure', 'Threading', 'Hair Spa'],
   },
   {
     id: 'traditional-makeup',
     name: 'Traditional Make Up',
-    price: 21999,
+    price: 11999,
     includes: ['VLCC Diamond Facial', 'Full Waxing', 'Manicure & Pedicure', 'Threading', 'Upper Lip', 'Hair Spa', 'Jewellery Set', 'Mehndi'],
+  },
+];
+
+export const mensGroomingPackages: SalonPackage[] = [
+  {
+    id: 'prince-package',
+    name: 'THE PRINCE PACKAGE',
+    price: 2499,
+    includes: ['Haircut', 'Beard', 'Hairwash', 'D.Tan', 'Aroma / Fruit Facial', 'Hair Coloring / Hair Spa'],
+  },
+  {
+    id: 'king-package',
+    name: 'THE KING PACKAGE',
+    price: 3399,
+    includes: ['Haircut', 'Beard', 'Hairwash', 'D.Tan', 'Gold / Diamond / Platinum Facial', 'Hair Coloring / Hair Spa'],
+  },
+  {
+    id: 'emperor-package',
+    name: 'THE EMPEROR PACKAGE',
+    price: 4499,
+    includes: ['VIP Private Suite Haircut', 'Signature Beard Design & Hot Towel Shave', 'Therapeutic Scalp Massage & Treatment', 'Anti-aging Skin Firming Treatment', 'Luxury Facial with Gold Serum', 'Hair Spa with Hand & Foot Massage', 'Pre-wedding Grooming Consultation'],
   },
 ];
 
@@ -160,11 +181,11 @@ export interface EventItem {
 export const eventItems: EventItem[] = [
   // Welcome Setup
   { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
-  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 100 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
-  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'per 2 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
+  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
+  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
   // Plates & Entry
   { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'seer-plate', name: 'Sendhana Kungumam', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'seer-plate', name: 'Sendhana Kungumam', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'cream-plate', name: 'Cream Plate', basePrice: 250, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
@@ -184,7 +205,7 @@ export type CateringCategory = 'tiffen' | 'lunch' | 'dinner';
 
 export const hallDurations: HallDuration[] = [
   { id: '4hrs', label: '4 Hours', timing: 'Choose start and end time', price: 25000 },
-  { id: 'half', label: '', timing: '5:00 AM – 3:00 PM or 4:00 PM – 10:00 PM', price: 35000 },
+  { id: 'half', label: '', timing: '5:00 AM – 2:00 PM or 4:00 PM – 10:00 PM', price: 35000 },
   { id: 'full', label: 'Full Day', timing: '4:00 PM – 4:00 PM', price: 55000 },
 ];
 
@@ -248,9 +269,9 @@ export const getAllowedCateringCategories = (
   if (hallDuration === '4hrs' && hallStartTime) {
     const [hours, minutes] = hallStartTime.split(':').map(Number);
     const totalMinutes = hours * 60 + minutes;
-    if (totalMinutes >= 60 && totalMinutes < 660) return ['tiffen'];
-    if (totalMinutes >= 660 && totalMinutes < 960) return ['lunch'];
-    if (totalMinutes >= 960 && totalMinutes <= 1320) return ['dinner'];
+    if (totalMinutes >= 60 && totalMinutes < 600) return ['tiffen'];
+    if (totalMinutes >= 600 && totalMinutes < 900) return ['lunch'];
+    if (totalMinutes >= 900 && totalMinutes <= 1320) return ['dinner'];
     return [];
   }
 

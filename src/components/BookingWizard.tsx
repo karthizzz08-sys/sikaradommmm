@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/lib/bookingStore';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
-  salonPackages, cateringPackages, formatPrice, timeIntervalsOverlap,
+  salonPackages, mensGroomingPackages, cateringPackages, formatPrice, timeIntervalsOverlap,
   formatTimeToAmPm,
 } from '@/lib/bookingData';
 import { Input } from '@/components/ui/input';
@@ -70,6 +70,10 @@ const BookingWizard = () => {
     store.selectedSalonIds.forEach(id => {
       const s = salonPackages.find(x => x.id === id);
       if (s) items.push(`Bridal Makeup: ${s.name}`);
+    });
+    store.selectedSalonIds.forEach(id => {
+      const m = mensGroomingPackages.find(x => x.id === id);
+      if (m) items.push(`Men's Grooming: ${m.name}`);
     });
     store.selectedCatering.forEach(sel => {
       const c = cateringPackages.find(x => x.id === sel.packageId);

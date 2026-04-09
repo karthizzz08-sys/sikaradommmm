@@ -3,6 +3,7 @@ import { eventItems, formatPrice } from '@/lib/bookingData';
 import { useBookingStore } from '@/lib/bookingStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { PartyPopper, Utensils, Sparkles } from 'lucide-react';
 
 const categoryIcons: Record<string, React.ReactNode> = {
@@ -55,20 +56,62 @@ const EventDetailSection = () => {
                           <p className="text-primary font-bold mt-1">{formatPrice(item.basePrice)}</p>
                           <p className="text-muted-foreground text-xs">{item.unit}</p>
                           {isSelected && item.unit !== 'fixed' && (
-                            <div className="flex items-center gap-2 mt-2">
-                              <span className="text-xs text-muted-foreground">Qty:</span>
-                              <Input
-                                type="number"
-                                min={item.minQty}
-                                value={sel?.qty ?? 1}
-                                onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
-                                className="w-20 h-8 text-sm"
-                                onClick={e => e.stopPropagation()}
-                              />
-                              <span className="text-xs font-semibold text-primary">
-                                = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
-                              </span>
-                            </div>
+                            item.id === 'welcome-drinks' ? (
+                              <div className="flex items-center gap-2 mt-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 rounded-lg px-0 text-sm"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setEventItemQty(item.id, Math.max(item.minQty, (sel?.qty ?? 1) - 1));
+                                  }}
+                                  aria-label="Decrease quantity"
+                                >
+                                  −
+                                </Button>
+                                <Input
+                                  type="number"
+                                  min={item.minQty}
+                                  value={sel?.qty ?? 1}
+                                  onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
+                                  className="w-20 h-8 text-sm"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 w-8 rounded-lg px-0 text-sm"
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    setEventItemQty(item.id, (sel?.qty ?? 1) + 1);
+                                  }}
+                                  aria-label="Increase quantity"
+                                >
+                                  +
+                                </Button>
+                                <span className="text-xs font-semibold text-primary">
+                                  = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 mt-2">
+                                <span className="text-xs text-muted-foreground">Qty:</span>
+                                <Input
+                                  type="number"
+                                  min={item.minQty}
+                                  value={sel?.qty ?? 1}
+                                  onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
+                                  className="w-20 h-8 text-sm"
+                                  onClick={e => e.stopPropagation()}
+                                />
+                                <span className="text-xs font-semibold text-primary">
+                                  = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
+                                </span>
+                              </div>
+                            )
                           )}
                         </div>
                       </div>

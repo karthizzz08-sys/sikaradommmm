@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
-import { salonPackages, formatPrice } from '@/lib/bookingData';
+import { salonPackages, mensGroomingPackages, formatPrice } from '@/lib/bookingData';
 import { useBookingStore } from '@/lib/bookingStore';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Sparkles, Star, Crown } from 'lucide-react';
+import { Sparkles, Star, Crown, Scissors } from 'lucide-react';
 import beauty1 from '@/assets/beauty-1.jpg';
 import beauty2 from '@/assets/beauty-2.jpg';
 import beauty3 from '@/assets/beauty-3.jpg';
@@ -12,6 +12,9 @@ const packageIcons = {
   'normal-makeup': Sparkles,
   'hd-makeup': Star,
   'traditional-makeup': Crown,
+  'prince-package': Scissors,
+  'king-package': Scissors,
+  'emperor-package': Scissors,
 };
 
 const SalonSection = () => {
@@ -78,6 +81,66 @@ const SalonSection = () => {
               </motion.label>
             );
           })}
+        </div>
+
+        <div className="mt-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-12"
+          >
+            <span className="text-primary font-semibold text-sm tracking-widest uppercase">
+              <Scissors className="inline w-4 h-4 mr-1" /> Premium Grooming
+            </span>
+            <h2 className="section-title mt-2">Men's Grooming Packages</h2>
+            <p className="section-subtitle mt-3">Luxurious grooming packages for the modern man</p>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {mensGroomingPackages.map((pkg, i) => {
+              const isSelected = selectedSalonIds.includes(pkg.id);
+              const Icon = packageIcons[pkg.id as keyof typeof packageIcons] || Scissors;
+              return (
+                <motion.label
+                  key={pkg.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`glass-card p-6 cursor-pointer transition-all hover:scale-[1.02] relative pb-24 ${
+                    isSelected ? 'ring-2 ring-primary bg-accent' : ''
+                  }`}
+                >
+                  <div className="flex items-start gap-3 mb-4">
+                    <Checkbox checked={isSelected} onCheckedChange={() => toggleSalon(pkg.id)} />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <Icon className="w-5 h-5 text-primary" />
+                        <h3 className="font-display text-lg font-bold text-foreground">{pkg.name}</h3>
+                      </div>
+                    </div>
+                  </div>
+                  <ul className="space-y-1.5 ml-7 mb-4">
+                    {pkg.includes.map((item, j) => (
+                      <li key={j} className="text-sm text-muted-foreground flex items-center gap-2">
+                        <span className="text-primary">✓</span> {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <div className="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex items-center justify-center">
+                    <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg shadow-primary/50 animate-pulse">
+                      <div className="text-center">
+                        <p className="text-xs font-semibold text-primary-foreground">₹{(pkg.price).toLocaleString()}</p>
+                        <p className="text-xs font-bold text-primary-foreground">ONLY</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.label>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

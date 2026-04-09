@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/lib/bookingStore';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
-  salonPackages, cateringPackages, formatPrice,
+  salonPackages, mensGroomingPackages, cateringPackages, formatPrice,
 } from '@/lib/bookingData';
 
 const FloatingTotal = () => {
@@ -18,7 +18,8 @@ const FloatingTotal = () => {
       })()
     : 0;
   const decorPrice = store.selectedDecorations.reduce((sum, id) => sum + (decorationItems.find(x => x.id === id)?.price ?? 0), 0);
-  const salonTotal = store.selectedSalonIds.reduce((sum, id) => sum + (salonPackages.find(x => x.id === id)?.price ?? 0), 0);
+  const allSalonPackages = [...salonPackages, ...mensGroomingPackages];
+  const salonTotal = store.selectedSalonIds.reduce((sum, id) => sum + (allSalonPackages.find(x => x.id === id)?.price ?? 0), 0);
   const cateringTotal = store.selectedCatering.reduce((sum, sel) => {
     const pkg = cateringPackages.find(x => x.id === sel.packageId);
     return sum + (pkg ? pkg.pricePerHead * sel.headCount : 0);

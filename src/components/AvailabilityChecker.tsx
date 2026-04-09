@@ -28,7 +28,7 @@
     const handleSelectDate = () => {
       if (selected && !isBooked) {
         setEventDate(selected);
-        const el = document.getElementById('booking');
+        const el = document.getElementById('hall');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }
     };

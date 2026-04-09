@@ -43,17 +43,50 @@ const FloatingTotal = () => {
     <motion.div
       initial={{ y: 100 }}
       animate={{ y: 0 }}
-      className="fixed bottom-0 left-0 right-0 z-50 gradient-violet p-3 sm:p-4 shadow-2xl"
+      className="fixed bottom-0 left-0 right-0 z-50 gradient-violet p-3 sm:p-4 shadow-2xl border-t-2 border-yellow-300"
     >
-      <div className="container max-w-4xl mx-auto flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-primary-foreground/80 text-xs sm:text-sm">Estimated Total</p>
-          <p className="text-primary-foreground text-lg sm:text-2xl font-bold font-display">{formatPrice(total)}</p>
-          {discount > 0 && <p className="text-primary-foreground/70 text-xs">10% discount applied</p>}
+      <div className="container max-w-4xl mx-auto">
+        {/* Header with pricing */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-primary-foreground/80 text-xs sm:text-sm">Estimated Total</p>
+            <p className="text-primary-foreground text-lg sm:text-2xl font-bold font-display">{formatPrice(total)}</p>
+          </div>
+          <a 
+            href="#booking" 
+            className="bg-primary-foreground text-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold hover:bg-primary-foreground/90 transition-colors text-sm sm:text-base whitespace-nowrap"
+          >
+            Book Now →
+          </a>
         </div>
-        <a href="#booking" className="bg-primary-foreground text-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold hover:bg-primary-foreground/90 transition-colors text-sm sm:text-base whitespace-nowrap">
-          Book Now →
-        </a>
+
+        {/* Discount breakdown */}
+        {discount > 0 && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="mt-3 pt-3 border-t border-primary-foreground/20 space-y-1"
+          >
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-primary-foreground/80">Total Amount</span>
+              <span className="text-primary-foreground/80">{formatPrice(subtotal)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-yellow-300 font-semibold">Discount (10%)</span>
+              <span className="text-yellow-300 font-semibold">-{formatPrice(discount)}</span>
+            </div>
+            <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-primary-foreground">
+              <span>Final Payable Amount</span>
+              <span>{formatPrice(total)}</span>
+            </div>
+            {/* Special discount message */}
+            <div className="mt-2 px-3 py-2 bg-primary-foreground/10 rounded-lg border border-yellow-300/50">
+              <p className="text-xs sm:text-sm text-yellow-200 font-bold animate-pulse">
+                🎉 You got 10% discount! Hall rent is FREE
+              </p>
+            </div>
+          </motion.div>
+        )}
       </div>
     </motion.div>
   );

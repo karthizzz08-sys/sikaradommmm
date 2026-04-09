@@ -1,4 +1,5 @@
 import Navbar from '@/components/Navbar';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 import HeroSection from '@/components/HeroSection';
 import AvailabilityChecker from '@/components/AvailabilityChecker';
 import HallBookingSection from '@/components/HallBookingSection';
@@ -16,6 +17,7 @@ import FloatingTotal from '@/components/FloatingTotal';
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <AnnouncementBanner />
       <Navbar />
       <HeroSection />
       <AvailabilityChecker />

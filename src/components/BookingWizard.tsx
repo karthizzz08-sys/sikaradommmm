@@ -12,6 +12,7 @@ import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import paymentQr from '@/assets/payment-qr.jpeg';
+import PriceSummary from '@/components/PriceSummary';
 
 const WHATSAPP_NUMBER = '919698678450';
 
@@ -213,9 +214,9 @@ const BookingWizard = () => {
         <AnimatePresence mode="wait">
           <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="glass-card p-4 sm:p-8">
             {step === 0 && (
-              <div>
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground mb-6">Your Selections</h3>
-                <ul className="space-y-3 mb-6">
+              <div className="space-y-6">
+                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
+                <ul className="space-y-3">
                   {getSelectionSummary().map((s, i) => (
                     <li key={i} className="flex items-start gap-2 text-foreground text-sm sm:text-base">
                       <span className="text-primary mt-0.5">✓</span> {s}
@@ -223,41 +224,26 @@ const BookingWizard = () => {
                   ))}
                 </ul>
                 {hallTiming && (
-                  <div className="flex justify-between text-sm mb-2">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Timing</span>
                     <span className="font-semibold text-foreground">{hallTiming}</span>
                   </div>
                 )}
                 {store.eventDate && (
-                  <div className="flex justify-between text-sm mb-2">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Event Date</span>
                     <span className="font-semibold text-foreground">{format(store.eventDate, 'PPP')}</span>
                   </div>
                 )}
                 {store.eventTime && (
-                  <div className="flex justify-between text-sm mb-2">
+                  <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Event Time</span>
                     <span className="font-semibold text-foreground">{store.eventTime}</span>
                   </div>
                 )}
-                <div className="border-t border-border pt-4 space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span className="font-semibold text-foreground">{formatPrice(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">10% Discount</span>
-                    <span className="font-semibold text-destructive">-{formatPrice(discount)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg">
-                    <span className="font-semibold text-foreground">Grand Total</span>
-                    <span className="font-bold text-primary text-xl sm:text-2xl">{formatPrice(grandTotal)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Advance (10%)</span>
-                    <span className="font-semibold text-foreground">{formatPrice(advanceAmount)}</span>
-                  </div>
-                </div>
+                
+                {/* Price Summary Component */}
+                <PriceSummary />
               </div>
             )}
 

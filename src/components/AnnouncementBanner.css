@@ -1,0 +1,64 @@
+/* Announcement Banner Styles */
+.announcement-banner {
+  position: relative;
+  width: 100%;
+}
+
+.marquee-container {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+.marquee-content {
+  display: flex;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+  padding-right: 100%;
+}
+
+.marquee-text {
+  display: inline-block;
+  padding-right: 2rem;
+  animation: marquee 20s linear infinite;
+}
+
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+/* Pause on hover for better UX */
+.marquee-container:hover .marquee-content {
+  animation-play-state: paused;
+}
+
+.marquee-container:hover .marquee-text {
+  animation-play-state: paused;
+}
+
+/* Mobile adjustments */
+@media (max-width: 640px) {
+  .marquee-content {
+    animation: marquee 15s linear infinite;
+  }
+
+  .marquee-text {
+    animation: marquee 15s linear infinite;
+  }
+}
+
+/* Shadow effect for depth */
+.announcement-banner::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0));
+}

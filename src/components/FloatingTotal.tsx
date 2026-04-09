@@ -69,6 +69,11 @@ const FloatingTotal = () => {
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ 
+              opacity: { duration: 0.3 },
+              height: { duration: 0.3 }
+            }}
             className="mt-3 pt-3 border-t border-primary-foreground/20 space-y-1"
           >
             <div className="flex items-center justify-between text-xs sm:text-sm">
@@ -85,9 +90,13 @@ const FloatingTotal = () => {
             </div>
             {/* Special discount message */}
             <div className="mt-2 px-3 py-2 bg-primary-foreground/10 rounded-lg border border-yellow-300/50">
-              <p className="text-xs sm:text-sm text-yellow-200 font-bold animate-pulse">
+              <motion.p 
+                className="text-xs sm:text-sm text-yellow-200 font-bold"
+                animate={{ opacity: [1, 0.5, 1] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              >
                 🎉 You got 10% discount! Hall rent is FREE
-              </p>
+              </motion.p>
             </div>
           </motion.div>
         )}

@@ -345,7 +345,8 @@ export const timeIntervalsOverlap = (
 export const getAllowedCateringCategories = (
   hallDuration: string | null,
   hallStartTime: string,
-  hallHalfMode: '' | 'morning' | 'evening'
+  hallEndTime: string,
+  hallHalfMode: '' | 'morning' | 'afternoon' | 'evening'
 ): CateringCategory[] => {
   if (hallDuration === 'full') {
     return ['tiffen', 'lunch', 'dinner'];
@@ -353,17 +354,43 @@ export const getAllowedCateringCategories = (
 
   if (hallDuration === 'half') {
     if (hallHalfMode === 'morning') return ['tiffen', 'lunch'];
-    if (hallHalfMode === 'evening') return ['dinner'];
+    if (hallHalfMode === 'afternoon') return ['lunch', 'dinner'];
+    if (hallHalfMode === 'evening') return ['lunch', 'dinner'];
     return [];
   }
 
-  if (hallDuration === '4hrs' && hallStartTime) {
-    const [hours, minutes] = hallStartTime.split(':').map(Number);
-    const totalMinutes = hours * 60 + minutes;
-    if (totalMinutes >= 300 && totalMinutes < 720) return ['tiffen'];
-    if (totalMinutes >= 720 && totalMinutes < 960) return ['lunch'];
-    if (totalMinutes >= 960 && totalMinutes <= 1440) return ['dinner'];
-    return [];
+  if (hallDuration === '4hrs' && hallStartTime && hallEndTime) {
+    const [startHours, startMinutes] = hallStartTime.split(':').map(Number);
+    const [endHours, endMinutes] = hallEndTime.split(':').map(Number);
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+    
+    // Time windows
+    const TIFFEN_START = 300;  // 5:00 AM
+    const TIFFEN_END = 720;    // 12:00 PM (noon)
+    const LUNCH_START = 720;   // 12:00 PM (noon)
+    const LUNCH_END = 960;     // 4:00 PM
+    const DINNER_START = 960;  // 4:00 PM
+    const DINNER_END = 1440;   // 12:00 AM (midnight)
+    
+    const categories: CateringCategory[] = [];
+    
+    // Check if booking overlaps with tiffen window (5am - 12pm)
+    if (startTotalMinutes < TIFFEN_END && endTotalMinutes > TIFFEN_START) {
+      categories.push('tiffen');
+    }
+    
+    // Check if booking overlaps with lunch window (12pm - 4pm)
+    if (startTotalMinutes < LUNCH_END && endTotalMinutes > LUNCH_START) {
+      categories.push('lunch');
+    }
+    
+    // Check if booking overlaps with dinner window (4pm - 12am)
+    if (startTotalMinutes < DINNER_END && endTotalMinutes > DINNER_START) {
+      categories.push('dinner');
+    }
+    
+    return categories.length > 0 ? categories : [];
   }
 
   return [];

@@ -6,7 +6,7 @@ export interface BookingRecord {
   customerName: string;
   phone: string;
   hallDuration: string;
-  hallHalfMode: '' | 'morning' | 'evening';
+  hallHalfMode: '' | 'morning' | 'afternoon' | 'evening';
   hallStartTime: string;
   hallEndTime: string;
   totalAmount: number;
@@ -56,7 +56,7 @@ export interface BookingState {
   eventDate: Date | null;
   hallStartTime: string;
   hallEndTime: string;
-  hallHalfMode: '' | 'morning' | 'evening';
+  hallHalfMode: '' | 'morning' | 'afternoon' | 'evening';
   // Booking history
   bookingHistory: BookingRecord[];
 

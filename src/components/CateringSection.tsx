@@ -19,11 +19,11 @@ const MIN_HEADCOUNT = 50;
 const HEADCOUNT_STEP = 10;
 
 const CateringSection = () => {
-  const { selectedCatering, toggleCatering, setCateringHeadCount, selectedCateringAddOns, toggleCateringAddOn, setCateringAddOnQty, hallDuration, hallStartTime, hallHalfMode } = useBookingStore();
+  const { selectedCatering, toggleCatering, setCateringHeadCount, selectedCateringAddOns, toggleCateringAddOn, setCateringAddOnQty, hallDuration, hallStartTime, hallEndTime, hallHalfMode } = useBookingStore();
   const categories: ('tiffen' | 'lunch' | 'dinner')[] = ['tiffen', 'lunch', 'dinner'];
 
   const visibleCategories = hallDuration
-    ? getAllowedCateringCategories(hallDuration, hallStartTime, hallHalfMode)
+    ? getAllowedCateringCategories(hallDuration, hallStartTime, hallEndTime, hallHalfMode)
     : categories;
   const categoryLabel = visibleCategories.length === 1
     ? visibleCategories[0] === 'tiffen' ? 'Tiffin'

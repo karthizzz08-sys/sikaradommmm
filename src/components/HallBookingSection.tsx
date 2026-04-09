@@ -64,7 +64,7 @@ const HallBookingSection = () => {
       ? hallHalfMode === 'morning'
         ? '5:00 AM - 4:00 PM (Tiffin + Lunch)'
         : hallHalfMode === 'evening'
-          ? '2:00 PM - 10:00 PM(Dinner)'
+          ? '2:00 PM - 10:00 PM (Lunch + Dinner)'
           : 'Select mode'
       : hallDuration === 'full'
         ? '4:00 PM - 4:00 PM Next Day'
@@ -232,7 +232,7 @@ const HallBookingSection = () => {
                 >
                   <p className="font-semibold text-foreground">Evening Half</p>
                   <p className="text-sm text-muted-foreground mt-1">02:00 PM – 10:00 PM</p>
-                  <p className="text-xs text-muted-foreground mt-2">Includes: Dinner Menu Only</p>
+                  <p className="text-xs text-muted-foreground mt-2">Includes: Lunch + Dinner</p>
                 </button>
               </div>
             </div>

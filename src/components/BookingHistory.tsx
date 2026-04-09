@@ -33,7 +33,7 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.setFontSize(10);
   doc.text(`Booking ID: ${b.id}`, 15, y); y += 6;
   doc.text(`Event Date: ${b.date}`, 15, y); y += 6;
-  doc.text(`Status: Successfully Booked`, 15, y); y += 10;
+  doc.text(`Status: Pending`, 15, y); y += 10;
   const hallLabel = b.hallDuration ? hallDurations.find(d => d.id === b.hallDuration)?.label ?? b.hallDuration : 'Not Selected';
   const hallStart = b.hallStartTime ? formatTimeToAmPm(b.hallStartTime) : 'Not Selected';
   const hallEnd = b.hallEndTime ? formatTimeToAmPm(b.hallEndTime) : 'Not Selected';
@@ -129,7 +129,7 @@ const BookingHistory = () => {
                 </div>
                 <span className="px-3 py-1 rounded-full text-xs font-bold bg-accent text-primary flex items-center gap-1 w-fit">
                   <CheckCircle2 className="w-3 h-3" />
-                  Successfully Booked
+                  Pending
                 </span>
               </div>
               <ul className="text-xs sm:text-sm text-foreground space-y-1 mb-3">

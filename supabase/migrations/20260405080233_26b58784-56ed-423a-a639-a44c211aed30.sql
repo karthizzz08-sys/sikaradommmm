@@ -1,3 +1,4 @@
+
 -- Create availability table for owner to manage blocked/booked dates
 CREATE TABLE public.availability (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,

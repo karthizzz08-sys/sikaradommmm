@@ -5,13 +5,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import { CalendarCheck, Trash2, LogIn, LogOut, Plus, Shield } from 'lucide-react';
+import { CalendarCheck, Trash2, LogIn, LogOut, Plus, Shield, Pencil } from 'lucide-react';
 
 interface AvailabilityRow {
   id: string;
   date: string;
+  start_time: string;
+  end_time: string;
   status: string;
   note: string | null;
+  owner_id: string | null;
+  owner_name: string | null;
 }
 
 const AdminDashboard = () => {
@@ -23,6 +27,9 @@ const AdminDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [note, setNote] = useState('');
   const [status, setStatus] = useState<'booked' | 'blocked'>('booked');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -55,24 +62,54 @@ const AdminDashboard = () => {
     setSession(null);
   };
 
-  const handleAddDate = async () => {
+  const resetForm = () => {
+    setSelectedDate(undefined);
+    setNote('');
+    setStatus('booked');
+    setStartTime('');
+    setEndTime('');
+    setEditingId(null);
+  };
+
+  const handleSave = async () => {
     if (!selectedDate) {
       toast.error('Please select a date');
       return;
     }
+
     const dateStr = format(selectedDate, 'yyyy-MM-dd');
-    const { error } = await supabase.from('availability').insert({
+    const payload = {
       date: dateStr,
+      start_time: startTime || '00:00',
+      end_time: endTime || '23:59',
       status,
       note: note || null,
+    };
+
+    if (editingId) {
+      const { error } = await supabase.from('availability').update(payload).eq('id', editingId);
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success('Availability updated!');
+        resetForm();
+        fetchDates();
+      }
+      return;
+    }
+
+    const { error } = await supabase.from('availability').insert({
+      ...payload,
+      owner_id: session?.user?.id,
+      owner_name: session?.user?.email,
     });
+
     if (error) {
       if (error.code === '23505') toast.error('This date is already added');
       else toast.error(error.message);
     } else {
       toast.success('Date added!');
-      setSelectedDate(undefined);
-      setNote('');
+      resetForm();
       fetchDates();
     }
   };
@@ -82,8 +119,22 @@ const AdminDashboard = () => {
     if (error) toast.error(error.message);
     else {
       toast.success('Date removed');
+      if (id === editingId) resetForm();
       fetchDates();
     }
+  };
+
+  const handleEdit = (row: AvailabilityRow) => {
+    setEditingId(row.id);
+    setSelectedDate(new Date(row.date + 'T00:00:00'));
+    setNote(row.note || '');
+    setStatus(row.status as 'booked' | 'blocked');
+    setStartTime(row.start_time || '');
+    setEndTime(row.end_time || '');
+  };
+
+  const handleCancelEdit = () => {
+    resetForm();
   };
 
   if (!session) {
@@ -151,6 +202,26 @@ const AdminDashboard = () => {
               }}
             />
             <div className="space-y-3">
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-semibold text-foreground">Start Time</label>
+                  <Input
+                    type="time"
+                    value={startTime}
+                    onChange={e => setStartTime(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-foreground">End Time</label>
+                  <Input
+                    type="time"
+                    value={endTime}
+                    onChange={e => setEndTime(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant={status === 'booked' ? 'default' : 'outline'}
@@ -170,9 +241,16 @@ const AdminDashboard = () => {
                 </Button>
               </div>
               <Input value={note} onChange={e => setNote(e.target.value)} placeholder="Optional note (e.g., Customer name)" />
-              <Button onClick={handleAddDate} className="w-full gradient-violet text-primary-foreground">
-                <Plus className="w-4 h-4 mr-1" /> Add Date
-              </Button>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button onClick={handleSave} className="flex-1 gradient-violet text-primary-foreground">
+                  <Plus className="w-4 h-4 mr-1" /> {editingId ? 'Update Availability' : 'Add Date'}
+                </Button>
+                {editingId && (
+                  <Button variant="outline" size="sm" onClick={handleCancelEdit} className="w-full sm:w-auto">
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -191,6 +269,9 @@ const AdminDashboard = () => {
                       <p className="font-semibold text-foreground text-sm">
                         {format(new Date(d.date + 'T00:00:00'), 'PPP')}
                       </p>
+                      <p className="text-xs text-muted-foreground">
+                        {d.start_time} - {d.end_time}
+                      </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                           d.status === 'booked'
@@ -199,12 +280,18 @@ const AdminDashboard = () => {
                         }`}>
                           {d.status}
                         </span>
-                        {d.note && <span className="text-xs text-muted-foreground">{d.note}</span>}
+                        {d.owner_name && <span className="text-xs text-muted-foreground">by {d.owner_name}</span>}
+                        {d.note && <span className="text-xs text-muted-foreground">• {d.note}</span>}
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="text-destructive hover:text-destructive">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(d)} className="text-primary hover:text-primary-foreground">
+                        <Pencil className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="text-destructive hover:text-destructive">
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>

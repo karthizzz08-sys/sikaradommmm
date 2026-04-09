@@ -18,22 +18,34 @@ export type Database = {
         Row: {
           created_at: string
           date: string
+          end_time: string
           id: string
           note: string | null
+          owner_id: string | null
+          owner_name: string | null
+          start_time: string
           status: string
         }
         Insert: {
           created_at?: string
           date: string
+          end_time: string
           id?: string
           note?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          start_time: string
           status?: string
         }
         Update: {
           created_at?: string
           date?: string
+          end_time?: string
           id?: string
           note?: string | null
+          owner_id?: string | null
+          owner_name?: string | null
+          start_time?: string
           status?: string
         }
         Relationships: []

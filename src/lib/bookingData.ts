@@ -164,10 +164,10 @@ export const eventItems: EventItem[] = [
   { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'per 2 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
   // Plates & Entry
   { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'seer-plate', name: 'Seer Plate / Named Plate', basePrice: 500, unit: 'per plate', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'karbedu-plate', name: 'Karbedu Plate', basePrice: 100, unit: 'per plate', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'per plate', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'cream-plate', name: 'Cream Plate', basePrice: 250, unit: 'per plate', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'seer-plate', name: 'Seer Plate / Named Plate', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'karbedu-plate', name: 'Karbedu Plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'cream-plate', name: 'Cream Plate', basePrice: 250, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   // Decorations & Effects
   { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
@@ -184,7 +184,7 @@ export type CateringCategory = 'tiffen' | 'lunch' | 'dinner';
 
 export const hallDurations: HallDuration[] = [
   { id: '4hrs', label: '4 Hours', timing: 'Choose start and end time', price: 25000 },
-  { id: 'half', label: 'Half Day', timing: '1:00 AM – 4:00 PM or 4:00 PM – 4:00 PM', price: 35000 },
+  { id: 'half', label: '', timing: '5:00 AM – 3:00 PM or 4:00 PM – 10:00 PM', price: 35000 },
   { id: 'full', label: 'Full Day', timing: '4:00 PM – 4:00 PM', price: 55000 },
 ];
 
@@ -241,7 +241,7 @@ export const getAllowedCateringCategories = (
 
   if (hallDuration === 'half') {
     if (hallHalfMode === 'morning') return ['tiffen', 'lunch'];
-    if (hallHalfMode === 'evening') return ['tiffen', 'lunch', 'dinner'];
+    if (hallHalfMode === 'evening') return ['dinner'];
     return [];
   }
 

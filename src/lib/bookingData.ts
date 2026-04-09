@@ -164,8 +164,8 @@ export const eventItems: EventItem[] = [
   { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'per 2 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup' },
   // Plates & Entry
   { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'seer-plate', name: 'Seer Plate / Named Plate', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
-  { id: 'karbedu-plate', name: 'Karbedu Plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'seer-plate', name: 'Sendhana Kungumam', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
+  { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'cream-plate', name: 'Cream Plate', basePrice: 250, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },
   { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry' },

@@ -62,9 +62,9 @@ const HallBookingSection = () => {
     ? hallStartTime && hallEndTime ? `${convertTo12Hour(hallStartTime)} - ${convertTo12Hour(hallEndTime)}` : 'Not set'
     : hallDuration === 'half'
       ? hallHalfMode === 'morning'
-        ? '5:00 AM - 2:00 PM (Tiffin + Lunch)'
+        ? '5:00 AM - 4:00 PM (Tiffin + Lunch)'
         : hallHalfMode === 'evening'
-          ? '4:00 PM - 10:00 PM (All menus)'
+          ? '2:00 PM - 10:00 PM(Dinner)'
           : 'Select mode'
       : hallDuration === 'full'
         ? '4:00 PM - 4:00 PM Next Day'
@@ -222,7 +222,7 @@ const HallBookingSection = () => {
                   className={`rounded-3xl border p-4 text-left transition ${hallHalfMode === 'morning' ? 'border-primary bg-accent' : 'border-border/70 bg-background'}`}
                 >
                   <p className="font-semibold text-foreground">Morning Half</p>
-                  <p className="text-sm text-muted-foreground mt-1">05:00 AM – 02:00 PM</p>
+                  <p className="text-sm text-muted-foreground mt-1">05:00 AM – 04:00 PM</p>
                   <p className="text-xs text-muted-foreground mt-2">Includes: Tiffin + Lunch</p>
                 </button>
                 <button
@@ -231,7 +231,7 @@ const HallBookingSection = () => {
                   className={`rounded-3xl border p-4 text-left transition ${hallHalfMode === 'evening' ? 'border-primary bg-accent' : 'border-border/70 bg-background'}`}
                 >
                   <p className="font-semibold text-foreground">Evening Half</p>
-                  <p className="text-sm text-muted-foreground mt-1">04:00 PM – 10:00 PM</p>
+                  <p className="text-sm text-muted-foreground mt-1">02:00 PM – 10:00 PM</p>
                   <p className="text-xs text-muted-foreground mt-2">Includes: Dinner Menu Only</p>
                 </button>
               </div>

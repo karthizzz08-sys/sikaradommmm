@@ -194,7 +194,7 @@ export const eventItems: EventItem[] = [
   { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
   { id: 'dj-dance', name: 'DJ & Dance', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
   { id: 'chariot-entry', name: 'Chariot Entry', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
-  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'per burst', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
+  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
   { id: 'bubble-effect', name: 'Bubble Effect', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
   { id: 'ice-smoke-entry', name: 'Ice Smoke Entry', basePrice: 5000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects' },
 ];
@@ -205,7 +205,7 @@ export type CateringCategory = 'tiffen' | 'lunch' | 'dinner';
 
 export const hallDurations: HallDuration[] = [
   { id: '4hrs', label: '4 Hours', timing: 'Choose start and end time', price: 25000 },
-  { id: 'half', label: '', timing: '5:00 AM – 2:00 PM or 4:00 PM – 10:00 PM', price: 35000 },
+  { id: 'half', label: 'Half Day', timing: '5:00 AM – 4:00 PM or 2:00 PM – 10:00 PM', price: 35000 },
   { id: 'full', label: 'Full Day', timing: '4:00 PM – 4:00 PM', price: 55000 },
 ];
 

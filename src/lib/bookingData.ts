@@ -359,34 +359,22 @@ export const getAllowedCateringCategories = (
     return [];
   }
 
-  if (hallDuration === '4hrs' && hallStartTime && hallEndTime) {
-    const [startHours, startMinutes] = hallStartTime.split(':').map(Number);
-    const [endHours, endMinutes] = hallEndTime.split(':').map(Number);
-    const startTotalMinutes = startHours * 60 + startMinutes;
-    const endTotalMinutes = endHours * 60 + endMinutes;
-    
-    // Time windows
-    const TIFFEN_START = 300;  // 5:00 AM
-    const TIFFEN_END = 720;    // 12:00 PM (noon)
-    const LUNCH_START = 720;   // 12:00 PM (noon)
-    const LUNCH_END = 960;     // 4:00 PM
-    const DINNER_START = 960;  // 4:00 PM
-    const DINNER_END = 1440;   // 12:00 AM (midnight)
-    
+  if (hallDuration === '4hrs' && hallStartTime) {
+    const [startHours] = hallStartTime.split(':').map(Number);
     const categories: CateringCategory[] = [];
     
-    // Check if booking overlaps with tiffen window (5am - 12pm)
-    if (startTotalMinutes < TIFFEN_END && endTotalMinutes > TIFFEN_START) {
+    // Show tiffen if start time is before 12:00 PM (noon)
+    if (startHours < 12) {
       categories.push('tiffen');
     }
     
-    // Check if booking overlaps with lunch window (12pm - 4pm)
-    if (startTotalMinutes < LUNCH_END && endTotalMinutes > LUNCH_START) {
+    // Show lunch if start time is between 7:00 AM and before 5:00 PM
+    if (startHours >= 7 && startHours < 17) {
       categories.push('lunch');
     }
     
-    // Check if booking overlaps with dinner window (4pm - 12am)
-    if (startTotalMinutes < DINNER_END && endTotalMinutes > DINNER_START) {
+    // Show dinner if start time is 2:00 PM (14:00) or later
+    if (startHours >= 14) {
       categories.push('dinner');
     }
     

@@ -9,9 +9,9 @@ const AnnouncementBanner = () => {
           {/* 🔥 Duplicate content */}
           <span className="marquee-text">
             🎉 Bookings above ₹3,00,000 get 10% discount on total amount — Hall Rent FREE 🎉 ·
-          </span>
+          {/* </span> */}
 
-          <span className="marquee-text">
+          {/* <span className="marquee-text"> */}
             🎉 Bookings above ₹3,00,000 get 10% discount on total amount — Hall Rent FREE 🎉 ·
           </span>
 

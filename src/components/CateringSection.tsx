@@ -36,6 +36,10 @@ const CateringSection = () => {
     const pkg = cateringPackages.find(x => x.id === sel.packageId);
     return total + (pkg ? pkg.pricePerHead * sel.headCount : 0);
   }, 0);
+  const totalAddOnsPrice = selectedCateringAddOns.reduce((total, sel) => {
+    const addon = cateringAddOns.find(x => x.id === sel.id);
+    return total + (addon ? addon.price * sel.qty : 0);
+  }, 0);
 
   const clampHeadCount = (value: number) => Math.max(MIN_HEADCOUNT, Math.round(value / HEADCOUNT_STEP) * HEADCOUNT_STEP);
 
@@ -252,9 +256,23 @@ const CateringSection = () => {
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Catering summary</p>
               <p className="mt-1 text-lg font-semibold text-foreground">{totalPlates} plates</p>
             </div>
-            <div className="text-right">
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Total price</p>
-              <p className="mt-1 text-2xl font-bold text-primary">{formatPrice(totalPrice)}</p>
+            <div className="space-y-2 text-right">
+              {totalPrice > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Catering Total</p>
+                  <p className="font-semibold text-primary">{formatPrice(totalPrice)}</p>
+                </div>
+              )}
+              {totalAddOnsPrice > 0 && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Add-Ons Total</p>
+                  <p className="font-semibold text-primary">{formatPrice(totalAddOnsPrice)}</p>
+                </div>
+              )}
+              <div className="pt-2 border-t border-border">
+                <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">Grand Total</p>
+                <p className="mt-1 text-2xl font-bold text-primary">{formatPrice(totalPrice + totalAddOnsPrice)}</p>
+              </div>
             </div>
           </div>
         </div>

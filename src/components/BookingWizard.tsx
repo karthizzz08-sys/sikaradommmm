@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBookingStore } from '@/lib/bookingStore';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
-  salonPackages, mensGroomingPackages, cateringPackages, formatPrice, timeIntervalsOverlap,
+  salonPackages, mensGroomingPackages, cateringPackages, cateringAddOns, formatPrice, timeIntervalsOverlap,
   formatTimeToAmPm,
 } from '@/lib/bookingData';
 import { Input } from '@/components/ui/input';
@@ -42,8 +42,12 @@ const BookingWizard = () => {
     const item = eventItems.find(x => x.id === sel.id);
     return sum + (item ? item.basePrice * sel.qty : 0);
   }, 0);
+  const cateringAddOnTotal = store.selectedCateringAddOns.reduce((sum, sel) => {
+    const addon = cateringAddOns.find(x => x.id === sel.id);
+    return sum + (addon ? addon.price * sel.qty : 0);
+  }, 0);
 
-  const subtotal = hallPrice + photoPrice + decorPrice + salonTotal + cateringTotal + eventTotal;
+  const subtotal = hallPrice + photoPrice + decorPrice + salonTotal + cateringTotal + eventTotal + cateringAddOnTotal;
   const discount = subtotal >= 300000 ? Math.round(subtotal * 0.1) : 0;
   const grandTotal = subtotal - discount;
   const advanceAmount = Math.round(grandTotal * 0.1);

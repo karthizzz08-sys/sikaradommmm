@@ -250,11 +250,11 @@ export interface CateringAddOn {
 }
 
 export const cateringAddOns: CateringAddOn[] = [
-  { id: 'chicken-65', name: 'Chicken 65', price: 5000, unit: 'per 100 nos', icon: '🍗' },
-  { id: 'paneer-65', name: 'Paneer 65', price: 3500, unit: 'per 100 nos', icon: '🧀' },
-  { id: 'fish-65', name: 'Fish 65', price: 4500, unit: 'per 100 nos', icon: '🐟' },
-  { id: 'veg-biryani', name: 'Veg Biryani', price: 150, unit: 'per head', icon: '🍚' },
-  { id: 'mutton-biryani', name: 'Mutton Biryani', price: 200, unit: 'per head', icon: '🍛' },
+  { id: 'chicken-65', name: 'Chicken 65', price: 5000, unit: 'per 100 nos', icon: '' },
+  { id: 'paneer-65', name: 'Chicken Gravy', price: 8000, unit: 'per 100 nos', icon: '' },
+  { id: 'fish-65', name: 'Kadai 65', price: 10000, unit: 'per 100 nos', icon: '' },
+  { id: 'veg-biryani', name: 'Meen Varuval', price: 10000, unit: 'per 100 nos', icon:''  },
+  // { id: 'mutton-biryani', name: 'Mutton Biryani', price: 200, unit: 'per head', icon: '' },
 ];
 
 // ─── EVENT ITEMS (detailed) ───
@@ -271,23 +271,23 @@ export interface EventItem {
 
 export const eventItems: EventItem[] = [
   // Welcome Setup
-  { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/gallery-1.jpg' },
-  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/catering-1.jpg' },
-  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/gallery-2.jpg' },
+  { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b1.jpeg' },
+  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b2.jpeg' },
+  { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b3.jpeg' },
   // Plates & Entry
-  { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-entrance.jpg' },
-  { id: 'seer-plate', name: 'Santhanam & Kumkumam & Paneer ', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-table.jpg' },
-  { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-3.jpg' },
-  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/catering-2.jpg' },
-  { id: 'cream-plate', name: 'Vetrilai Paakku Plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/catering-3.jpg' },
-  { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/decor-table.jpg' },
+  { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b4.jpeg' },
+  { id: 'seer-plate', name: 'Santhanam & Kumkumam & Paneer ', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b5.jpeg' },
+  { id: 'karbedu-plate', name: 'Gem named plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b6.jpeg' },
+  { id: 'chocolate-plate', name: 'Chocolate Plate', basePrice: 150, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b7.jpeg' },
+  { id: 'cream-plate', name: 'Vetrilai Paakku Plate', basePrice: 100, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b8.jpeg' },
+  { id: 'flower-pot', name: 'Flower Pot (Welcome Table)', basePrice: 500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b9.jpeg' },
   // Decorations & Effects
-  { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-stage.jpg' },
-  { id: 'dj-dance', name: 'DJ & Dance', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-4.jpg' },
-  { id: 'chariot-entry', name: 'Chariot Entry', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-5.jpg' },
-  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-1.jpg' },
-  { id: 'bubble-effect', name: 'Bubble Effect', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/decor-2.jpg' },
-  { id: 'ice-smoke-entry', name: 'Ice Smoke Entry', basePrice: 5000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/gallery-6.jpg' },
+  { id: 'outer-lighting', name: 'Outer Lighting', basePrice: 10000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b10.jpeg' },
+  { id: 'dj-dance', name: 'DJ & Dance', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b11.jpeg' },
+  { id: 'chariot-entry', name: 'Chariot Entry', basePrice: 35000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b12.jpeg' },
+  { id: 'pyro-blast', name: 'Pyro Blast', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b13.jpeg' },
+  { id: 'bubble-effect', name: 'Bubble Effect', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b14.jpeg' },
+  { id: 'ice-smoke-entry', name: 'Ice Smoke Entry', basePrice: 5000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Decorations & Effects', image: '@/assets/b15.jpeg' },
 ];
 
 // ─── EXISTING DATA ───

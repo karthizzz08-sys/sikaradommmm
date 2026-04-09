@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { useBookingStore } from '@/lib/bookingStore';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
-  salonPackages, mensGroomingPackages, cateringPackages, formatPrice,
+  salonPackages, mensGroomingPackages, cateringPackages, cateringAddOns, formatPrice,
 } from '@/lib/bookingData';
 
 const PriceSummary = ({ className = '' }: { className?: string }) => {
@@ -26,8 +26,12 @@ const PriceSummary = ({ className = '' }: { className?: string }) => {
     const item = eventItems.find(x => x.id === sel.id);
     return sum + (item ? item.basePrice * sel.qty : 0);
   }, 0);
+  const cateringAddOnTotal = store.selectedCateringAddOns.reduce((sum, sel) => {
+    const addon = cateringAddOns.find(x => x.id === sel.id);
+    return sum + (addon ? addon.price * sel.qty : 0);
+  }, 0);
 
-  const subtotal = hallPrice + photoPrice + decorPrice + salonTotal + cateringTotal + eventTotal;
+  const subtotal = hallPrice + photoPrice + decorPrice + salonTotal + cateringTotal + eventTotal + cateringAddOnTotal;
   const discount = subtotal >= 300000 ? Math.round(subtotal * 0.1) : 0;
   const total = subtotal - discount;
   const hasDiscount = discount > 0;
@@ -89,6 +93,12 @@ const PriceSummary = ({ className = '' }: { className?: string }) => {
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Event Items</span>
             <span className="font-semibold text-foreground">{formatPrice(eventTotal)}</span>
+          </div>
+        )}
+        {cateringAddOnTotal > 0 && (
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Catering Add-Ons</span>
+            <span className="font-semibold text-foreground">{formatPrice(cateringAddOnTotal)}</span>
           </div>
         )}
       </div>

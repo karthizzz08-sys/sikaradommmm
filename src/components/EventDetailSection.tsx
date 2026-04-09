@@ -5,20 +5,21 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { PartyPopper, Utensils, Sparkles } from 'lucide-react';
-import gallery1 from '@/assets/gallery-1.jpg';
-import gallery2 from '@/assets/gallery-2.jpg';
-import gallery4 from '@/assets/gallery-4.jpg';
-import gallery5 from '@/assets/gallery-5.jpg';
-import gallery6 from '@/assets/gallery-6.jpg';
-import catering1 from '@/assets/catering-1.jpg';
-import catering2 from '@/assets/catering-2.jpg';
-import catering3 from '@/assets/catering-3.jpg';
-import decorEntrance from '@/assets/decor-entrance.jpg';
-import decorTable from '@/assets/decor-table.jpg';
-import decorStage from '@/assets/decor-stage.jpg';
-import decor1 from '@/assets/decor-1.jpg';
-import decor2 from '@/assets/decor-2.jpg';
-import decor3 from '@/assets/decor-3.jpg';
+import b1 from '@/assets/b1.jpeg';
+import b2 from '@/assets/b2.jpeg';
+import b3 from '@/assets/b3.jpeg';
+import b4 from '@/assets/b4.jpeg';
+import b5 from '@/assets/b5.jpeg';
+import b6 from '@/assets/b6.jpeg';
+import b7 from '@/assets/b7.jpeg';
+import b8 from '@/assets/b8.jpeg';
+import b9 from '@/assets/b9.jpeg';
+import b10 from '@/assets/b10.jpeg';
+import b11 from '@/assets/b11.jpeg';
+import b12 from '@/assets/b12.jpeg';
+import b13 from '@/assets/b13.jpeg';
+import b14 from '@/assets/b14.jpeg';
+import b15 from '@/assets/b15.jpeg';
 
 const categoryIcons: Record<string, React.ReactNode> = {
   'Welcome Setup': <PartyPopper className="w-5 h-5 text-primary" />,
@@ -27,20 +28,21 @@ const categoryIcons: Record<string, React.ReactNode> = {
 };
 
 const imageMap: Record<string, string> = {
-  '@/assets/gallery-1.jpg': gallery1,
-  '@/assets/gallery-2.jpg': gallery2,
-  '@/assets/gallery-4.jpg': gallery4,
-  '@/assets/gallery-5.jpg': gallery5,
-  '@/assets/gallery-6.jpg': gallery6,
-  '@/assets/catering-1.jpg': catering1,
-  '@/assets/catering-2.jpg': catering2,
-  '@/assets/catering-3.jpg': catering3,
-  '@/assets/decor-entrance.jpg': decorEntrance,
-  '@/assets/decor-table.jpg': decorTable,
-  '@/assets/decor-stage.jpg': decorStage,
-  '@/assets/decor-1.jpg': decor1,
-  '@/assets/decor-2.jpg': decor2,
-  '@/assets/decor-3.jpg': decor3,
+  '@/assets/b1.jpeg': b1,
+  '@/assets/b2.jpeg': b2,
+  '@/assets/b3.jpeg': b3,
+  '@/assets/b4.jpeg': b4,
+  '@/assets/b5.jpeg': b5,
+  '@/assets/b6.jpeg': b6,
+  '@/assets/b7.jpeg': b7,
+  '@/assets/b8.jpeg': b8,
+  '@/assets/b9.jpeg': b9,
+  '@/assets/b10.jpeg': b10,
+  '@/assets/b11.jpeg': b11,
+  '@/assets/b12.jpeg': b12,
+  '@/assets/b13.jpeg': b13,
+  '@/assets/b14.jpeg': b14,
+  '@/assets/b15.jpeg': b15,
 };
 
 const EventDetailSection = () => {
@@ -76,7 +78,7 @@ const EventDetailSection = () => {
                   return (
                     <label
                       key={item.id}
-                      className={`glass-card overflow-hidden cursor-pointer transition-all hover:scale-[1.01] ${
+                      className={`glass-card overflow-hidden cursor-pointer transition-all hover:scale-[1.01] flex flex-col ${
                         isSelected ? 'ring-2 ring-primary bg-accent' : ''
                       }`}
                     >
@@ -84,7 +86,7 @@ const EventDetailSection = () => {
                         <img 
                           src={imageMap[item.image] || item.image}
                           alt={item.name}
-                          className="w-full h-32 object-cover"
+                          className="w-full h-40 object-cover"
                           loading="lazy"
                         />
                       )}
@@ -95,64 +97,64 @@ const EventDetailSection = () => {
                             <p className="font-semibold text-foreground text-sm">{item.name}</p>
                             <p className="text-primary font-bold mt-1">{formatPrice(item.basePrice)}</p>
                             <p className="text-muted-foreground text-xs">{item.unit}</p>
-                          {isSelected && item.unit !== 'fixed' && (
-                            item.id === 'welcome-drinks' ? (
-                              <div className="flex items-center gap-2 mt-2">
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 rounded-lg px-0 text-sm"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setEventItemQty(item.id, Math.max(item.minQty, (sel?.qty ?? 1) - 1));
-                                  }}
-                                  aria-label="Decrease quantity"
-                                >
-                                  −
-                                </Button>
-                                <Input
-                                  type="number"
-                                  min={item.minQty}
-                                  value={sel?.qty ?? 1}
-                                  onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
-                                  className="w-20 h-8 text-sm"
-                                  onClick={e => e.stopPropagation()}
-                                />
-                                <Button
-                                  type="button"
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 w-8 rounded-lg px-0 text-sm"
-                                  onClick={e => {
-                                    e.stopPropagation();
-                                    setEventItemQty(item.id, (sel?.qty ?? 1) + 1);
-                                  }}
-                                  aria-label="Increase quantity"
-                                >
-                                  +
-                                </Button>
-                                <span className="text-xs font-semibold text-primary">
-                                  = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
-                                </span>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2 mt-2">
-                                <span className="text-xs text-muted-foreground">Qty:</span>
-                                <Input
-                                  type="number"
-                                  min={item.minQty}
-                                  value={sel?.qty ?? 1}
-                                  onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
-                                  className="w-20 h-8 text-sm"
-                                  onClick={e => e.stopPropagation()}
-                                />
-                                <span className="text-xs font-semibold text-primary">
-                                  = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
-                                </span>
-                              </div>
-                            )
-                          )}
+                            {isSelected && item.unit !== 'fixed' && (
+                              item.id === 'welcome-drinks' ? (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 w-8 rounded-lg px-0 text-sm"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setEventItemQty(item.id, Math.max(item.minQty, (sel?.qty ?? 1) - 1));
+                                    }}
+                                    aria-label="Decrease quantity"
+                                  >
+                                    −
+                                  </Button>
+                                  <Input
+                                    type="number"
+                                    min={item.minQty}
+                                    value={sel?.qty ?? 1}
+                                    onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
+                                    className="w-20 h-8 text-sm"
+                                    onClick={e => e.stopPropagation()}
+                                  />
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 w-8 rounded-lg px-0 text-sm"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setEventItemQty(item.id, (sel?.qty ?? 1) + 1);
+                                    }}
+                                    aria-label="Increase quantity"
+                                  >
+                                    +
+                                  </Button>
+                                  <span className="text-xs font-semibold text-primary">
+                                    = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className="text-xs text-muted-foreground">Qty:</span>
+                                  <Input
+                                    type="number"
+                                    min={item.minQty}
+                                    value={sel?.qty ?? 1}
+                                    onChange={e => setEventItemQty(item.id, Math.max(item.minQty, Number(e.target.value)))}
+                                    className="w-20 h-8 text-sm"
+                                    onClick={e => e.stopPropagation()}
+                                  />
+                                  <span className="text-xs font-semibold text-primary">
+                                    = {formatPrice(item.basePrice * (sel?.qty ?? 1))}
+                                  </span>
+                                </div>
+                              )
+                            )}
                           </div>
                         </div>
                       </div>

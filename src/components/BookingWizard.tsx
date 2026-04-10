@@ -92,14 +92,28 @@ const BookingWizard = () => {
     return items;
   };
 
+  const validateTimeSelection = () => {
+    if (store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime)) {
+      toast.error('Please select both start and end time for the 4-hour hall booking.');
+      return false;
+    }
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (!validateTimeSelection()) {
+      return;
+    }
+    setStep(s => Math.min(3, s + 1));
+  };
+
   const handleSubmit = async () => {
     if (!store.customerName || !store.customerPhone || !store.transactionId) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    if (store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime)) {
-      toast.error('Please select both start and end time for the 4-hour hall booking.');
+    if (!validateTimeSelection()) {
       return;
     }
 
@@ -236,6 +250,11 @@ const BookingWizard = () => {
             {step === 0 && (
               <div className="space-y-6">
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
+                {store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime) && (
+                  <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30">
+                    <p className="text-sm font-semibold text-destructive">⚠️ Please select both start and end time for the 4-hour hall booking in the Hall Booking Section above</p>
+                  </div>
+                )}
                 <ul className="space-y-3">
                   {getSelectionSummary().map((s, i) => (
                     <li key={i} className="flex items-start gap-2 text-foreground text-sm sm:text-base">
@@ -353,7 +372,7 @@ const BookingWizard = () => {
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
           </Button>
           {step < 3 && (
-            <Button onClick={() => setStep(s => Math.min(3, s + 1))} className="gradient-violet text-primary-foreground" size="sm">
+            <Button onClick={handleNextStep} className="gradient-violet text-primary-foreground" size="sm">
               Next <ChevronRight className="w-4 h-4 ml-1" />
             </Button>
           )}

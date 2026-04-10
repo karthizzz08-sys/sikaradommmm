@@ -93,13 +93,18 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.text(formatPriceForPdf(subtotal), pageWidth - 20, y, { align: 'right' }); y += 7;
   
   if (b.discount > 0) {
-    doc.setTextColor(220, 50, 50);
+    // Discount applied box
+    doc.setFillColor(200, 255, 200);
+    doc.rect(15, y - 2, pageWidth - 30, 18, 'F');
+    doc.setTextColor(0, 100, 0);
     doc.setFont('helvetica', 'bold');
-    doc.text(`10% Discount:`, 20, y);
-    doc.text(`-${formatPriceForPdf(b.discount)}`, pageWidth - 20, y, { align: 'right' }); 
-    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.text('10% DISCOUNT APPLIED', pageWidth / 2, y + 3, { align: 'center' });
     doc.setFont('helvetica', 'normal');
-    y += 7;
+    doc.setFontSize(10);
+    doc.text(`Discount Amount: -${formatPriceForPdf(b.discount)}`, pageWidth / 2, y + 9, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
+    y += 22;
   }
 
   // Highlight box for Total
@@ -197,8 +202,14 @@ const BookingHistory = () => {
                 ))}
               </ul>
               <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm border-t border-border pt-3">
+                <span>Subtotal: <strong className="text-foreground">{formatPrice(b.totalAmount + b.discount)}</strong></span>
+                {b.discount > 0 && (
+                  <>
+                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-bold text-xs">10% OFF</span>
+                    <span>Discount: <strong className="text-green-600">-{formatPrice(b.discount)}</strong></span>
+                  </>
+                )}
                 <span>Total: <strong className="text-primary">{formatPrice(b.totalAmount)}</strong></span>
-                {b.discount > 0 && <span>Discount: <strong className="text-destructive">-{formatPrice(b.discount)}</strong></span>}
                 <span>Advance: <strong>{formatPrice(b.advanceAmount)}</strong></span>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
                   <Button

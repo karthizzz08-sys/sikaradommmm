@@ -43,7 +43,7 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(51, 102, 0);
   doc.setFontSize(11);
-  doc.text(`📅 EVENT DATE: ${b.date}`, pageWidth / 2, y + 7, { align: 'center' });
+  doc.text(`EVENT DATE: ${b.date}`, pageWidth / 2, y + 7, { align: 'center' });
   doc.setTextColor(0, 0, 0);
   y += 18;
 
@@ -82,7 +82,7 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.line(15, y, pageWidth - 15, y); y += 8;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
-  doc.text('💰 PRICE DETAILS', 15, y); y += 10;
+  doc.text('PRICE DETAILS', 15, y); y += 10;
 
   // Price table
   doc.setFont('helvetica', 'normal');

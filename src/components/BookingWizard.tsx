@@ -254,12 +254,25 @@ const BookingWizard = () => {
           <motion.div key={step} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="glass-card p-4 sm:p-8">
             {step === 0 && (
               <div className="space-y-6">
-                <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
+                  <p className="text-xs sm:text-sm text-destructive font-semibold">🗑️ Remove from card</p>
+                </div>
                 <ul className="space-y-3">
                   {store.hallDuration && (
                     <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                       <span className="flex items-center gap-2"><span className="text-primary">✓</span> Hall: {hallDurations.find(d => d.id === store.hallDuration)?.label}</span>
-                      <button onClick={() => store.removeHall()} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove hall">
+                      <button 
+                        onClick={() => {
+                          const hallLabel = hallDurations.find(d => d.id === store.hallDuration)?.label;
+                          if (confirm(`Remove "${hallLabel}" from selections?`)) {
+                            store.removeHall();
+                            toast.success(`❌ Removed: ${hallLabel}`);
+                          }
+                        }} 
+                        className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                        title="Remove hall"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </li>
@@ -277,7 +290,17 @@ const BookingWizard = () => {
                   {store.photoPackageId && (
                     <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                       <span className="flex items-center gap-2"><span className="text-primary">✓</span> Photography: {photoPackages.find(x => x.id === store.photoPackageId)?.name} ({store.photoEventCount} event{store.photoEventCount > 1 ? 's' : ''})</span>
-                      <button onClick={() => store.removePhoto()} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove photography">
+                      <button 
+                        onClick={() => {
+                          const photoName = photoPackages.find(x => x.id === store.photoPackageId)?.name;
+                          if (confirm(`Remove "Photography - ${photoName}" from selections?`)) {
+                            store.removePhoto();
+                            toast.success(`❌ Removed: Photography - ${photoName}`);
+                          }
+                        }} 
+                        className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                        title="Remove photography"
+                      >
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </li>
@@ -287,7 +310,16 @@ const BookingWizard = () => {
                     return d ? (
                       <li key={id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                         <span className="flex items-center gap-2"><span className="text-primary">✓</span> Decoration: {d.name}</span>
-                        <button onClick={() => store.removeDecoration(id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove decoration">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Remove "Decoration - ${d.name}" from selections?`)) {
+                              store.removeDecoration(id);
+                              toast.success(`❌ Removed: Decoration - ${d.name}`);
+                            }
+                          }} 
+                          className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                          title="Remove decoration"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </li>
@@ -298,7 +330,16 @@ const BookingWizard = () => {
                     return s ? (
                       <li key={id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                         <span className="flex items-center gap-2"><span className="text-primary">✓</span> Bridal Makeup: {s.name}</span>
-                        <button onClick={() => store.removeSalon(id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove bridal makeup">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Remove "Bridal Makeup - ${s.name}" from selections?`)) {
+                              store.removeSalon(id);
+                              toast.success(`❌ Removed: Bridal Makeup - ${s.name}`);
+                            }
+                          }} 
+                          className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                          title="Remove bridal makeup"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </li>
@@ -309,7 +350,16 @@ const BookingWizard = () => {
                     return c ? (
                       <li key={sel.packageId} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                         <span className="flex items-center gap-2"><span className="text-primary">✓</span> Catering: {c.name} x{sel.headCount} heads = {formatPrice(c.pricePerHead * sel.headCount)}</span>
-                        <button onClick={() => store.removeCatering(sel.packageId)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove catering">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Remove "Catering - ${c.name} (${sel.headCount} heads)" from selections?`)) {
+                              store.removeCatering(sel.packageId);
+                              toast.success(`❌ Removed: Catering - ${c.name}`);
+                            }
+                          }} 
+                          className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                          title="Remove catering"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </li>
@@ -320,7 +370,16 @@ const BookingWizard = () => {
                     return addon ? (
                       <li key={sel.id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                         <span className="flex items-center gap-2"><span className="text-primary">✓</span> Add-on: {addon.name} x{sel.qty}</span>
-                        <button onClick={() => store.removeCateringAddOn(sel.id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove add-on">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Remove "Add-on - ${addon.name}" from selections?`)) {
+                              store.removeCateringAddOn(sel.id);
+                              toast.success(`❌ Removed: Add-on - ${addon.name}`);
+                            }
+                          }} 
+                          className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                          title="Remove add-on"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </li>
@@ -331,7 +390,16 @@ const BookingWizard = () => {
                     return e ? (
                       <li key={sel.id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
                         <span className="flex items-center gap-2"><span className="text-primary">✓</span> Event: {e.name} x{sel.qty}</span>
-                        <button onClick={() => store.removeEventItem(sel.id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove event item">
+                        <button 
+                          onClick={() => {
+                            if (confirm(`Remove "Event Item - ${e.name}" from selections?`)) {
+                              store.removeEventItem(sel.id);
+                              toast.success(`❌ Removed: Event Item - ${e.name}`);
+                            }
+                          }} 
+                          className="text-destructive hover:bg-destructive/10 p-1.5 rounded transition flex-shrink-0" 
+                          title="Remove event item"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </li>

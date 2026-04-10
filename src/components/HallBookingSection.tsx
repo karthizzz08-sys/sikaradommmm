@@ -102,6 +102,16 @@ const HallBookingSection = () => {
                   setHallEndTime('');
                 }
                 if (nextValue === 'half' && !hallHalfMode) setHallHalfMode('morning');
+                
+                // Scroll to timing section when 4 hours is selected
+                if (nextValue === '4hrs') {
+                  setTimeout(() => {
+                    const timingSection = document.getElementById('hall-4hrs-timing');
+                    if (timingSection) {
+                      timingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 150);
+                }
               }}
               className={`glass-card p-8 text-left transition-all cursor-pointer hover:scale-[1.02] ${
                 hallDuration === d.id
@@ -130,7 +140,11 @@ const HallBookingSection = () => {
           </div>
 
           {hallDuration === '4hrs' && (
-            <div className="mt-6 flex flex-col gap-4">
+            <div id="hall-4hrs-timing" className="mt-6 flex flex-col gap-4">
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-2">
+                <h4 className="font-semibold text-primary text-sm">⏰ Set Your Timing</h4>
+                <p className="text-xs text-muted-foreground mt-1">Select your preferred 4-hour start time</p>
+              </div>
               <div className="flex flex-col gap-2">
                 <label className="text-sm font-semibold text-foreground">4-Hour Start Time</label>
                 <div className="flex gap-2 items-end">

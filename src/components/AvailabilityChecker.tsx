@@ -9,7 +9,7 @@
   const AvailabilityChecker = () => {
     const [selected, setSelected] = useState<Date | undefined>();
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
-    const { setEventDate } = useBookingStore();
+    const store = useBookingStore();
 
     useEffect(() => {
       const fetchDates = async () => {
@@ -27,8 +27,10 @@
 
     const handleSelectDate = () => {
       if (selected && !isBooked) {
-        setEventDate(selected);
-        const el = document.getElementById('hall');
+        store.setEventDate(selected);
+        // If 4 hours is already selected, scroll to timing section; otherwise scroll to hall section
+        const sectionId = store.hallDuration === '4hrs' ? 'hall-4hrs-timing' : 'hall';
+        const el = document.getElementById(sectionId);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       }
     };

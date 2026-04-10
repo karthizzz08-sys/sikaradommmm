@@ -255,11 +255,6 @@ const BookingWizard = () => {
             {step === 0 && (
               <div className="space-y-6">
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
-                {store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime) && (
-                  <div className="p-4 bg-destructive/10 rounded-lg border border-destructive/30">
-                    <p className="text-sm font-semibold text-destructive">⚠️ Please select both start and end time for the 4-hour hall booking in the Hall Booking Section above</p>
-                  </div>
-                )}
                 <ul className="space-y-3">
                   {getSelectionSummary().map((s, i) => (
                     <li key={i} className="flex items-start gap-2 text-foreground text-sm sm:text-base">

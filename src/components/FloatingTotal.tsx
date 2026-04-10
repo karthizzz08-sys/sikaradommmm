@@ -6,6 +6,22 @@ import {
   salonPackages, mensGroomingPackages, cateringPackages, cateringAddOns, formatPrice,
 } from '@/lib/bookingData';
 
+const handleBookNowClick = (hallDuration: string | null, hallStartTime: string, hallEndTime: string) => {
+  // If 4hrs is selected but timing not set, scroll to timing section
+  if (hallDuration === '4hrs' && (!hallStartTime || !hallEndTime)) {
+    const timingSection = document.getElementById('hall-4hrs-timing');
+    if (timingSection) {
+      timingSection.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+  }
+  // Otherwise scroll to booking section
+  const bookingSection = document.getElementById('booking');
+  if (bookingSection) {
+    bookingSection.scrollIntoView({ behavior: 'smooth' });
+  }
+};
+
 const FloatingTotal = () => {
   const store = useBookingStore();
   const [visible, setVisible] = useState(false);
@@ -56,12 +72,12 @@ const FloatingTotal = () => {
             <p className="text-primary-foreground/80 text-xs sm:text-sm">Estimated Total</p>
             <p className="text-primary-foreground text-lg sm:text-2xl font-bold font-display">{formatPrice(total)}</p>
           </div>
-          <a 
-            href="#booking" 
+          <button 
+            onClick={() => handleBookNowClick(store.hallDuration, store.hallStartTime, store.hallEndTime)}
             className="bg-primary-foreground text-primary px-4 sm:px-6 py-2 sm:py-3 rounded-full font-bold hover:bg-primary-foreground/90 transition-colors text-sm sm:text-base whitespace-nowrap"
           >
             Book Now →
-          </a>
+          </button>
         </div>
 
         {/* Discount breakdown */}

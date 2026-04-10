@@ -94,7 +94,6 @@ const BookingWizard = () => {
 
   const validateTimeSelection = () => {
     if (store.hallDuration === '4hrs' && (!store.hallStartTime || !store.hallEndTime)) {
-      toast.error('Please select both start and end time for the 4-hour hall booking.');
       return false;
     }
     return true;
@@ -102,6 +101,12 @@ const BookingWizard = () => {
 
   const handleNextStep = () => {
     if (!validateTimeSelection()) {
+      toast.error('Please select both start and end time for the 4-hour hall booking.');
+      // Scroll to hall section
+      const hallSection = document.getElementById('hall');
+      if (hallSection) {
+        hallSection.scrollIntoView({ behavior: 'smooth' });
+      }
       return;
     }
     setStep(s => Math.min(3, s + 1));
@@ -367,7 +372,7 @@ const BookingWizard = () => {
           </motion.div>
         </AnimatePresence>
 
-        <div className="flex justify-between mt-6">
+        <div className="flex flex-col sm:flex-row justify-center sm:justify-between gap-4 mt-6">
           <Button variant="outline" onClick={() => setStep(s => Math.max(0, s - 1))} disabled={step === 0} size="sm" className="sm:size-default">
             <ChevronLeft className="w-4 h-4 mr-1" /> Back
           </Button>

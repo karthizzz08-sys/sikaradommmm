@@ -69,7 +69,7 @@ const FloatingTotal = () => {
         {/* Header with pricing */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-2">
           <div className="min-w-0 flex-1">
-            <p className="text-primary-foreground/80 text-xs sm:text-sm">Estimated Total</p>
+            <p className="text-primary-foreground/80 text-xs sm:text-sm"> Total</p>
             <p className="text-primary-foreground text-lg sm:text-2xl font-bold font-display">{formatPrice(total)}</p>
           </div>
           <button 

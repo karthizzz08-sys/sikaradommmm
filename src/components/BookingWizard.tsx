@@ -9,7 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
@@ -256,20 +256,90 @@ const BookingWizard = () => {
               <div className="space-y-6">
                 <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground">Your Selections</h3>
                 <ul className="space-y-3">
-                  {getSelectionSummary().map((s, i) => (
-                    <li key={i} className="flex items-start gap-2 text-foreground text-sm sm:text-base">
-                      <span className="text-primary mt-0.5">✓</span> {s}
+                  {store.hallDuration && (
+                    <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                      <span className="flex items-center gap-2"><span className="text-primary">✓</span> Hall: {hallDurations.find(d => d.id === store.hallDuration)?.label}</span>
+                      <button onClick={() => store.removeHall()} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove hall">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </li>
-                  ))}
+                  )}
+                  {store.hallStartTime && (
+                    <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                      <span className="flex items-center gap-2"><span className="text-primary">✓</span> Start Time: {formatTimeToAmPm(store.hallStartTime)}</span>
+                    </li>
+                  )}
+                  {store.hallEndTime && (
+                    <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                      <span className="flex items-center gap-2"><span className="text-primary">✓</span> End Time: {formatTimeToAmPm(store.hallEndTime)}</span>
+                    </li>
+                  )}
+                  {store.photoPackageId && (
+                    <li className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                      <span className="flex items-center gap-2"><span className="text-primary">✓</span> Photography: {photoPackages.find(x => x.id === store.photoPackageId)?.name} ({store.photoEventCount} event{store.photoEventCount > 1 ? 's' : ''})</span>
+                      <button onClick={() => store.removePhoto()} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove photography">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </li>
+                  )}
+                  {store.selectedDecorations.map(id => {
+                    const d = decorationItems.find(x => x.id === id);
+                    return d ? (
+                      <li key={id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                        <span className="flex items-center gap-2"><span className="text-primary">✓</span> Decoration: {d.name}</span>
+                        <button onClick={() => store.removeDecoration(id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove decoration">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ) : null;
+                  })}
+                  {store.selectedSalonIds.map(id => {
+                    const s = salonPackages.find(x => x.id === id);
+                    return s ? (
+                      <li key={id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                        <span className="flex items-center gap-2"><span className="text-primary">✓</span> Bridal Makeup: {s.name}</span>
+                        <button onClick={() => store.removeSalon(id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove bridal makeup">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ) : null;
+                  })}
+                  {store.selectedCatering.map(sel => {
+                    const c = cateringPackages.find(x => x.id === sel.packageId);
+                    return c ? (
+                      <li key={sel.packageId} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                        <span className="flex items-center gap-2"><span className="text-primary">✓</span> Catering: {c.name} x{sel.headCount} heads = {formatPrice(c.pricePerHead * sel.headCount)}</span>
+                        <button onClick={() => store.removeCatering(sel.packageId)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove catering">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ) : null;
+                  })}
+                  {store.selectedCateringAddOns.map(sel => {
+                    const addon = cateringAddOns.find(x => x.id === sel.id);
+                    return addon ? (
+                      <li key={sel.id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                        <span className="flex items-center gap-2"><span className="text-primary">✓</span> Add-on: {addon.name} x{sel.qty}</span>
+                        <button onClick={() => store.removeCateringAddOn(sel.id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove add-on">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ) : null;
+                  })}
+                  {store.selectedEventItems.map(sel => {
+                    const e = eventItems.find(x => x.id === sel.id);
+                    return e ? (
+                      <li key={sel.id} className="flex items-center justify-between gap-2 text-foreground text-sm sm:text-base p-3 bg-muted rounded-lg group hover:bg-muted/80 transition">
+                        <span className="flex items-center gap-2"><span className="text-primary">✓</span> Event: {e.name} x{sel.qty}</span>
+                        <button onClick={() => store.removeEventItem(sel.id)} className="text-destructive hover:bg-destructive/10 p-1.5 rounded opacity-0 group-hover:opacity-100 transition flex-shrink-0" title="Remove event item">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </li>
+                    ) : null;
+                  })}
                 </ul>
-                {hallTiming && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Timing</span>
-                    <span className="font-semibold text-foreground">{hallTiming}</span>
-                  </div>
-                )}
                 {store.eventDate && (
-                  <div className="flex justify-between text-sm">
+                  <div className="flex justify-between text-sm mt-4 p-3 bg-accent/30 rounded-lg">
                     <span className="text-muted-foreground">Event Date</span>
                     <span className="font-semibold text-foreground">{format(store.eventDate, 'PPP')}</span>
                   </div>

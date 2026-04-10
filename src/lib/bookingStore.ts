@@ -62,16 +62,23 @@ export interface BookingState {
 
   // Actions
   setHallDuration: (id: string | null) => void;
+  removeHall: () => void;
   toggleExtra: (id: string) => void;
   setPhotoPackage: (id: string | null) => void;
+  removePhoto: () => void;
   setPhotoEventCount: (count: 1 | 2) => void;
   toggleDecoration: (id: string) => void;
+  removeDecoration: (id: string) => void;
   toggleSalon: (id: string) => void;
+  removeSalon: (id: string) => void;
   toggleCatering: (id: string) => void;
+  removeCatering: (id: string) => void;
   setCateringHeadCount: (id: string, count: number) => void;
   toggleCateringAddOn: (id: string) => void;
+  removeCateringAddOn: (id: string) => void;
   setCateringAddOnQty: (id: string, qty: number) => void;
   toggleEventItem: (id: string) => void;
+  removeEventItem: (id: string) => void;
   setEventItemQty: (id: string, qty: number) => void;
   setTransactionId: (id: string) => void;
   setPaymentScreenshot: (f: File | null) => void;
@@ -79,6 +86,9 @@ export interface BookingState {
   setCustomerPhone: (p: string) => void;
   setCustomerEmail: (e: string) => void;
   setEventDate: (d: Date | null) => void;
+  setHallStartTime: (t: string) => void;
+  setHallEndTime: (t: string) => void;
+  setHallHalfMode: (mode: '' | 'morning' | 'afternoon' | 'evening') => void;
   addBooking: (record: BookingRecord) => void;
   resetSelections: () => void;
 }
@@ -112,22 +122,35 @@ export const useBookingStore = create<BookingState>((set) => ({
   bookingHistory: loadHistory(),
 
   setHallDuration: (id) => set({ hallDuration: id }),
+  removeHall: () => set({ 
+    hallDuration: null,
+    hallStartTime: '',
+    hallEndTime: '',
+    hallHalfMode: ''
+  }),
   toggleExtra: (id) => set((s) => ({
     selectedExtras: s.selectedExtras.includes(id)
       ? s.selectedExtras.filter(e => e !== id)
       : [...s.selectedExtras, id]
   })),
   setPhotoPackage: (id) => set({ photoPackageId: id }),
+  removePhoto: () => set({ photoPackageId: null, photoEventCount: 1 }),
   setPhotoEventCount: (count) => set({ photoEventCount: count }),
   toggleDecoration: (id) => set((s) => ({
     selectedDecorations: s.selectedDecorations.includes(id)
       ? s.selectedDecorations.filter(d => d !== id)
       : [...s.selectedDecorations, id]
   })),
+  removeDecoration: (id) => set((s) => ({
+    selectedDecorations: s.selectedDecorations.filter(d => d !== id)
+  })),
   toggleSalon: (id) => set((s) => ({
     selectedSalonIds: s.selectedSalonIds.includes(id)
       ? s.selectedSalonIds.filter(x => x !== id)
       : [...s.selectedSalonIds, id]
+  })),
+  removeSalon: (id) => set((s) => ({
+    selectedSalonIds: s.selectedSalonIds.filter(x => x !== id)
   })),
   toggleCatering: (id) => set((s) => {
     const exists = s.selectedCatering.find(x => x.packageId === id);
@@ -136,6 +159,9 @@ export const useBookingStore = create<BookingState>((set) => ({
     }
     return { selectedCatering: [...s.selectedCatering, { packageId: id, headCount: 50 }] };
   }),
+  removeCatering: (id) => set((s) => ({
+    selectedCatering: s.selectedCatering.filter(x => x.packageId !== id)
+  })),
   setCateringHeadCount: (id, count) => set((s) => ({
     selectedCatering: s.selectedCatering.map(x => x.packageId === id ? { ...x, headCount: count } : x)
   })),
@@ -146,6 +172,9 @@ export const useBookingStore = create<BookingState>((set) => ({
     }
     return { selectedCateringAddOns: [...s.selectedCateringAddOns, { id, qty: 1 }] };
   }),
+  removeCateringAddOn: (id) => set((s) => ({
+    selectedCateringAddOns: s.selectedCateringAddOns.filter(x => x.id !== id)
+  })),
   setCateringAddOnQty: (id, qty) => set((s) => ({
     selectedCateringAddOns: s.selectedCateringAddOns.map(x => x.id === id ? { ...x, qty } : x)
   })),
@@ -156,6 +185,9 @@ export const useBookingStore = create<BookingState>((set) => ({
     }
     return { selectedEventItems: [...s.selectedEventItems, { id, qty: 1 }] };
   }),
+  removeEventItem: (id) => set((s) => ({
+    selectedEventItems: s.selectedEventItems.filter(x => x.id !== id)
+  })),
   setEventItemQty: (id, qty) => set((s) => ({
     selectedEventItems: s.selectedEventItems.map(x => x.id === id ? { ...x, qty } : x)
   })),

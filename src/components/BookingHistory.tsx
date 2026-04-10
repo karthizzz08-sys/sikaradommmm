@@ -1,9 +1,12 @@
 import { motion } from 'framer-motion';
 import { useBookingStore, BookingRecord } from '@/lib/bookingStore';
 import { hallDurations, formatPrice, formatPriceForPdf, formatTimeToAmPm } from '@/lib/bookingData';
-import { Download, CheckCircle2, ClipboardList } from 'lucide-react';
+import { Download, CheckCircle2, ClipboardList, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import jsPDF from 'jspdf';
+
+const WHATSAPP_NUMBER = '919698678450';
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 const generateBookingPDF = (b: BookingRecord) => {
   const doc = new jsPDF('p', 'mm', 'a4');
@@ -32,11 +35,23 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10);
   doc.text(`Booking ID: ${b.id}`, 15, y); y += 6;
-  doc.text(`Event Date: ${b.date}`, 15, y); y += 6;
   doc.text(`Status: Pending`, 15, y); y += 10;
+
+  // Event Date - Highlighted Box
+  doc.setFillColor(220, 237, 200);
+  doc.rect(15, y - 2, pageWidth - 30, 14, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setTextColor(51, 102, 0);
+  doc.setFontSize(11);
+  doc.text(`📅 EVENT DATE: ${b.date}`, pageWidth / 2, y + 7, { align: 'center' });
+  doc.setTextColor(0, 0, 0);
+  y += 18;
+
   const hallLabel = b.hallDuration ? hallDurations.find(d => d.id === b.hallDuration)?.label ?? b.hallDuration : 'Not Selected';
   const hallStart = b.hallStartTime ? formatTimeToAmPm(b.hallStartTime) : 'Not Selected';
   const hallEnd = b.hallEndTime ? formatTimeToAmPm(b.hallEndTime) : 'Not Selected';
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
   doc.text(`Hall: ${hallLabel}`, 15, y); y += 6;
   doc.text(`Start Time: ${hallStart}`, 15, y); y += 6;
   doc.text(`End Time: ${hallEnd}`, 15, y); y += 10;
@@ -57,41 +72,85 @@ const generateBookingPDF = (b: BookingRecord) => {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   b.selections.forEach(s => {
-    if (y > 270) { doc.addPage(); y = 20; }
+    if (y > 250) { doc.addPage(); y = 20; }
     doc.text(`• ${s}`, 20, y); y += 5;
   });
 
   y += 5;
-  // Payment
+  // Payment Section
   doc.setDrawColor(139, 69, 19);
   doc.line(15, y, pageWidth - 15, y); y += 8;
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(11);
-  doc.text('Payment Summary', 15, y); y += 8;
-  doc.setFontSize(10);
+  doc.setFontSize(12);
+  doc.text('💰 PRICE DETAILS', 15, y); y += 10;
+
+  // Price table
   doc.setFont('helvetica', 'normal');
-  doc.text(`Total Amount:`, 20, y);
-  doc.text(formatPriceForPdf(b.totalAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
+  doc.setFontSize(10);
+  const subtotal = b.totalAmount + b.discount;
+  
+  doc.text(`Subtotal Amount:`, 20, y);
+  doc.text(formatPriceForPdf(subtotal), pageWidth - 20, y, { align: 'right' }); y += 7;
+  
   if (b.discount > 0) {
     doc.setTextColor(220, 50, 50);
+    doc.setFont('helvetica', 'bold');
     doc.text(`10% Discount:`, 20, y);
-    doc.text(`-${formatPriceForPdf(b.discount)}`, pageWidth - 20, y, { align: 'right' }); y += 6;
+    doc.text(`-${formatPriceForPdf(b.discount)}`, pageWidth - 20, y, { align: 'right' }); 
     doc.setTextColor(0, 0, 0);
+    doc.setFont('helvetica', 'normal');
+    y += 7;
   }
-  doc.text(`Advance Paid (10%):`, 20, y);
-  doc.text(formatPriceForPdf(b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 6;
-  doc.setFont('helvetica', 'bold');
-  doc.text(`Balance Due:`, 20, y);
-  doc.text(formatPriceForPdf(b.totalAmount - b.discount - b.advanceAmount), pageWidth - 20, y, { align: 'right' }); y += 12;
 
-  // Contact
+  // Highlight box for Total
+  doc.setFillColor(255, 245, 200);
+  doc.rect(15, y - 2, pageWidth - 30, 12, 'F');
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  doc.text(`TOTAL AMOUNT:`, 20, y + 5);
+  doc.setTextColor(139, 69, 19);
+  doc.text(formatPriceForPdf(b.totalAmount), pageWidth - 20, y + 5, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  y += 16;
+
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.text(`Advance Paid (10%):`, 20, y);
+  doc.setTextColor(0, 100, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatPriceForPdf(b.advanceAmount), pageWidth - 20, y, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+  y += 7;
+
+  doc.text(`Balance Due:`, 20, y);
+  doc.setTextColor(200, 0, 0);
+  doc.setFont('helvetica', 'bold');
+  doc.text(formatPriceForPdf(b.totalAmount - b.discount - b.advanceAmount), pageWidth - 20, y, { align: 'right' });
+  doc.setTextColor(0, 0, 0);
+  doc.setFont('helvetica', 'normal');
+  y += 12;
+
+  // Footer
+  doc.setDrawColor(139, 69, 19);
+  doc.line(15, y, pageWidth - 15, y); y += 8;
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   doc.text('WhatsApp: +91 96986 78450', pageWidth / 2, y, { align: 'center' }); y += 6;
   doc.setFont('helvetica', 'italic');
+  doc.setFontSize(8);
   doc.text('Thank you for choosing Sikara Mahal!', pageWidth / 2, y, { align: 'center' });
 
   doc.save(`Sikara_Booking_${b.customerName.replace(/\s+/g, '_')}_${b.id}.pdf`);
+};
+
+const handleWhatsAppClick = () => {
+  try {
+    window.open(WHATSAPP_LINK, '_blank');
+  } catch (error) {
+    console.error('Error opening WhatsApp:', error);
+    window.location.href = WHATSAPP_LINK;
+  }
 };
 
 const BookingHistory = () => {
@@ -141,15 +200,25 @@ const BookingHistory = () => {
                 <span>Total: <strong className="text-primary">{formatPrice(b.totalAmount)}</strong></span>
                 {b.discount > 0 && <span>Discount: <strong className="text-destructive">-{formatPrice(b.discount)}</strong></span>}
                 <span>Advance: <strong>{formatPrice(b.advanceAmount)}</strong></span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => generateBookingPDF(b)}
-                  className="w-full sm:w-auto sm:ml-auto flex items-center justify-center gap-1.5 text-primary hover:text-primary mt-1 sm:mt-0"
-                >
-                  <Download className="w-4 h-4" />
-                  Download PDF
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto sm:ml-auto">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => generateBookingPDF(b)}
+                    className="flex items-center justify-center gap-1.5 text-primary hover:text-primary"
+                  >
+                    <Download className="w-4 h-4" />
+                    Download PDF
+                  </Button>
+                  <Button
+                    onClick={handleWhatsAppClick}
+                    className="gradient-violet text-primary-foreground flex items-center justify-center gap-1.5"
+                    size="sm"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Contact on WhatsApp
+                  </Button>
+                </div>
               </div>
             </div>
           ))}

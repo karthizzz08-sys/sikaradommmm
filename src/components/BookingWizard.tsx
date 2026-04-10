@@ -15,6 +15,7 @@ import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
 
 const WHATSAPP_NUMBER = '919698678450';
+const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 
 const BookingWizard = () => {
   const [step, setStep] = useState(0);
@@ -135,7 +136,6 @@ const BookingWizard = () => {
       (store.hallDuration ? `⏰ Start Time: ${hallStartLabel}\n` : '') +
       (store.hallDuration ? `⏰ End Time: ${hallEndLabel}\n` : '') +
       (halfDayModeLabel ? `⏰ Half Day Mode: ${halfDayModeLabel}\n` : '') +
-      (store.eventTime ? `⏰ Event Time: ${store.eventTime}\n` : '') +
       `\n📋 *Selections:*\n${selections.map(s => `• ${s}`).join('\n')}\n\n` +
       `💰 *Subtotal: ${formatPrice(subtotal)}*\n` +
       `🎉 *10% Discount: -${formatPrice(discount)}*\n` +
@@ -165,8 +165,24 @@ const BookingWizard = () => {
       }
     }
 
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank');
-    toast.success('Booking submitted! Redirecting to WhatsApp...');
+    // Try to open WhatsApp with message
+    try {
+      const whatsappUrl = `${WHATSAPP_LINK}?text=${msg}`;
+      const opened = window.open(whatsappUrl, '_blank');
+      
+      // Fallback if window.open fails or is blocked
+      if (!opened) {
+        window.location.href = whatsappUrl;
+      }
+      
+      toast.success('Booking submitted! Opening WhatsApp...');
+    } catch (error) {
+      console.error('Error opening WhatsApp:', error);
+      // Fallback to direct link without message
+      window.open(WHATSAPP_LINK, '_blank');
+      toast.success('Booking submitted! Opening WhatsApp...');
+    }
+    
     store.resetSelections();
     setStep(0);
   };
@@ -239,12 +255,6 @@ const BookingWizard = () => {
                     <span className="font-semibold text-foreground">{format(store.eventDate, 'PPP')}</span>
                   </div>
                 )}
-                {store.eventTime && (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Event Time</span>
-                    <span className="font-semibold text-foreground">{store.eventTime}</span>
-                  </div>
-                )}
                 
                 {/* Price Summary Component */}
                 <PriceSummary />
@@ -269,8 +279,7 @@ const BookingWizard = () => {
                 {store.eventDate && (
                   <div className="p-4 bg-accent rounded-lg">
                     <p className="text-sm font-semibold text-foreground">📅 Selected Event Date: {format(store.eventDate, 'PPP')}</p>
-                    {store.eventTime && <p className="text-sm font-semibold text-foreground">⏰ Selected Time: {store.eventTime}</p>}
-                    <p className="text-xs text-muted-foreground mt-1">Selected from availability checker and time selector</p>
+                    <p className="text-xs text-muted-foreground mt-1">Selected from availability checker</p>
                   </div>
                 )}
                 {!store.eventDate && (
@@ -323,7 +332,6 @@ const BookingWizard = () => {
                       <p><span className="font-semibold">End Time:</span> {store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected'}</p>
                     </>
                   )}
-                  {store.eventTime && <p><span className="font-semibold">Event Time:</span> {store.eventTime}</p>}
                   <p><span className="font-semibold">Subtotal:</span> {formatPrice(subtotal)}</p>
                   <p><span className="font-semibold">Discount (10%):</span> <span className="text-destructive">-{formatPrice(discount)}</span></p>
                   <p><span className="font-semibold">Total:</span> {formatPrice(grandTotal)}</p>

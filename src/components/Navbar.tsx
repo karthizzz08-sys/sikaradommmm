@@ -1,9 +1,15 @@
 import { useState } from 'react';
-import { Menu, X, Home, Building2, Camera, Palette, Sparkles, Crown, PartyPopper, Music, CalendarCheck, UtensilsCrossed, Image } from 'lucide-react';
+import { Menu, X, Home, Building2, Camera, Palette, Sparkles, Crown, PartyPopper, Music, CalendarCheck, UtensilsCrossed, Image, Phone, Mail, MessageCircle } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const contactPhone = "9698678450";
+  const contactEmail = "sikaratechnology@gamil.com";
+  const whatsappNumber = "919698678450";
+  const whatsappMessage = "Hi! I'm interested in booking Sikara Mahal for my event.";
+  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  
   const links = [
     { href: '#', label: 'Home', icon: Home },
     { href: '#availability', label: 'Availability', icon: CalendarCheck },
@@ -30,13 +36,26 @@ const Navbar = () => {
           </span>
         </a>
 
-        <div className="hidden lg:flex items-center gap-4">
-          {links.map((l) => (
-            <a key={l.href + l.label} href={l.href} className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
-              <l.icon className="w-3.5 h-3.5" />
-              {l.label}
+        <div className="hidden lg:flex items-center gap-6">
+          <div className="flex items-center gap-4">
+            {links.map((l) => (
+              <a key={l.href + l.label} href={l.href} className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-primary transition-colors">
+                <l.icon className="w-3.5 h-3.5" />
+                {l.label}
+              </a>
+            ))}
+          </div>
+          
+          <div className="flex items-center gap-4 pl-6 border-l border-border">
+            <a 
+              href="#footer"
+              className="flex items-center gap-2 text-xs font-medium text-muted-foreground hover:text-primary transition-colors"
+              title="Contact us"
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span className="hidden xl:inline">Contact</span>
             </a>
-          ))}
+          </div>
         </div>
 
         <Sheet open={open} onOpenChange={setOpen}>
@@ -53,13 +72,43 @@ const Navbar = () => {
               <span className="text-[10px] text-muted-foreground tracking-[0.2em] uppercase">Luxury Wedding Hall</span>
             </div>
             <SheetTitle className="sr-only">Menu</SheetTitle>
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1 mb-6">
               {links.map((l) => (
                 <a key={l.href + l.label} href={l.href} onClick={() => setOpen(false)} className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary hover:bg-accent/50 px-4 py-3 rounded-lg transition-colors">
                   <l.icon className="w-5 h-5" />
                   {l.label}
                 </a>
               ))}
+            </div>
+            
+            <div className="border-t border-border pt-4 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-4">Contact</p>
+              <a 
+                href={whatsappLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary hover:bg-accent/50 px-4 py-3 rounded-lg transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                <MessageCircle className="w-5 h-5" />
+                Contact
+              </a>
+              <a 
+                href={`tel:${contactPhone}`}
+                className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary hover:bg-accent/50 px-4 py-3 rounded-lg transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                <Phone className="w-5 h-5" />
+                Contact
+              </a>
+              <a 
+                href={`mailto:${contactEmail}`}
+                className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary hover:bg-accent/50 px-4 py-3 rounded-lg transition-colors"
+                onClick={() => setOpen(false)}
+              >
+                <Mail className="w-5 h-5" />
+                Contact
+              </a>
             </div>
           </SheetContent>
         </Sheet>

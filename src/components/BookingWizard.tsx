@@ -192,7 +192,7 @@ const BookingWizard = () => {
       toast.error(`❌ Email error: ${error.message}`);
     }
 
-    // Send screenshot + details to OWNER's WhatsApp (9698678450)
+    // Send screenshot + details to OWNER's WhatsApp (919698678450)
     const ownerMsg = (
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -207,7 +207,7 @@ const BookingWizard = () => {
       `💰 *Total:* ${formatPrice(grandTotal)}\n` +
       `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
       `🧾 *Txn ID:* ${store.transactionId}\n\n` +
-      (store.paymentScreenshot ? `📎 *Payment Screenshot:* ${store.paymentScreenshot.name}` : '📎 Payment Screenshot: Pending')
+      `🖼️ *IMPORTANT: Please attach payment screenshot in this chat*`
     );
 
     // Open WhatsApp with message and screenshot info

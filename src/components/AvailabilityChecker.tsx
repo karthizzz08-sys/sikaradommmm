@@ -1,13 +1,14 @@
   import { useState, useEffect } from 'react';
   import { motion } from 'framer-motion';
   import { Calendar } from '@/components/ui/calendar';
-  import { CalendarCheck, Clock, Lock, AlertCircle } from 'lucide-react';
+  import { CalendarCheck, Clock, Lock } from 'lucide-react';
   import { supabase } from '@/integrations/supabase/client';
   import { useBookingStore } from '@/lib/bookingStore';
   import { Button } from '@/components/ui/button';
   import { format } from 'date-fns';
   import { toast } from 'sonner';
-  import { getAvailableSlots, generateHourlySlots, calculateAvailableHours } from '@/lib/timeSlots';
+  import { getAvailableSlots } from '@/lib/timeSlots';
+  import { formatTimeToAmPm } from '@/lib/bookingData';
 
   interface BookingSlot {
     start_time: string;
@@ -18,7 +19,6 @@
     const [selected, setSelected] = useState<Date | undefined>();
     const [bookings, setBookings] = useState<BookingSlot[]>([]);
     const [availableSlots, setAvailableSlots] = useState<Array<{ start: string; end: string }>>([]);
-    const [availableHours, setAvailableHours] = useState(24);
     const [selectedHour, setSelectedHour] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
@@ -55,14 +55,22 @@
         setBookings(data as BookingSlot[]);
         const available = getAvailableSlots(data);
         setAvailableSlots(available);
-        setAvailableHours(calculateAvailableHours(data));
       } else {
         setBookings([]);
         setAvailableSlots([{ start: '00:00', end: '23:59' }]);
-        setAvailableHours(24);
       }
       setSelectedHour(null);
       setLoading(false);
+
+      // Auto-scroll to availability slots on mobile for booked dates
+      const isBooked = data && data.length > 0;
+      if (isBooked && window.innerWidth < 768) {
+        // Delay to allow DOM to update
+        setTimeout(() => {
+          const el = document.querySelector('[data-availability-slots]');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+      }
     };
 
     // Check if a specific hour is booked
@@ -95,7 +103,7 @@
     const handleSelectHour = (hour: string) => {
       setSelectedHour(hour);
       store.setEventDate(selected!);
-      toast.success(`✅ Selected: ${hour}`);
+      toast.success(`✅ Selected: ${formatTimeToAmPm(hour)}`);
       // Scroll to booking section
       const el = document.getElementById('hall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -173,6 +181,7 @@
             {/* Available times - Only show for violet (booked) dates */}
             {selected && isSelectedDateBooked && (
               <motion.div
+                data-availability-slots
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}
@@ -191,23 +200,6 @@
                     <div className="text-muted-foreground text-sm">Loading...</div>
                   ) : (
                     <>
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 p-4 rounded-xl border-0 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 shadow-sm"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-bold text-green-700 dark:text-green-300 text-lg">
-                              ✅ {availableHours} hours available
-                            </p>
-                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
-                              {format(selected, 'EEEE, MMMM d, yyyy')}
-                            </p>
-                          </div>
-                        </div>
-                      </motion.div>
-
                       {/* Booked times */}
                     {bookings.length > 0 && (
                       <motion.div
@@ -219,7 +211,7 @@
                         <div className="flex flex-wrap gap-2">
                           {bookings.map((b, idx) => (
                             <div key={idx} className="px-3 py-2 rounded-lg bg-red-200/40 dark:bg-red-800/40 text-xs font-medium text-red-700 dark:text-red-300 backdrop-blur-sm">
-                              {b.start_time} – {b.end_time}
+                              {formatTimeToAmPm(b.start_time)} – {formatTimeToAmPm(b.end_time)}
                             </div>
                           ))}
                         </div>
@@ -238,7 +230,7 @@
                         <div className="flex flex-wrap gap-2">
                           {availableSlots.map((slot, idx) => (
                             <div key={idx} className="px-3 py-2 rounded-lg bg-blue-200/40 dark:bg-blue-800/40 text-xs font-medium text-blue-700 dark:text-blue-300 backdrop-blur-sm">
-                              {slot.start} – {slot.end}
+                              {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
                             </div>
                           ))}
                         </div>
@@ -248,7 +240,7 @@
                     {/* Hourly grid - All 24 hours with booking status */}
                     <div className="mt-6">
                       <div className="mb-4">
-                        <p className="text-xs text-muted-foreground">Showing all 24 hours (00:00–23:59) for {format(selected, 'MMMM d, yyyy')}</p>
+                        <p className="text-xs text-muted-foreground">Showing all 24 hours (9:00 AM–9:00 PM) for {format(selected, 'MMMM d, yyyy')}</p>
                       </div>
                       <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
                         {getHourlyDisplay().map((slot, idx) => (
@@ -259,7 +251,7 @@
                             onClick={() => slot.available && handleSelectHour(slot.hour)}
                             disabled={!slot.available}
                             transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                            title={slot.available ? `Available: ${slot.hour}` : `Booked: ${slot.hour}`}
+                            title={slot.available ? `Available: ${formatTimeToAmPm(slot.hour)}` : `Booked: ${formatTimeToAmPm(slot.hour)}`}
                             className={`py-2 px-2 rounded-lg font-bold transition-all duration-200 flex items-center justify-center gap-0.5 text-xs ${
                               slot.available
                                 ? selectedHour === slot.hour
@@ -269,7 +261,7 @@
                             }`}
                           >
                             {!slot.available && <Lock className="w-3 h-3" />}
-                            {slot.hour}
+                            {formatTimeToAmPm(slot.hour)}
                           </motion.button>
                         ))}
                       </div>
@@ -309,7 +301,7 @@
                             ✓
                           </motion.span>
                           <p className="font-bold text-violet-900 dark:text-violet-300 text-lg">
-                            Selected: {selectedHour}
+                            Selected: {selectedHour ? formatTimeToAmPm(selectedHour) : ''}
                           </p>
                         </div>
                         <p className="text-sm text-violet-700 dark:text-violet-400 mb-4">

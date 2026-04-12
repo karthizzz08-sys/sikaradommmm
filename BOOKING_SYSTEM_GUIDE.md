@@ -412,40 +412,40 @@ WHERE id = 'booking-uuid';
 Date: April 16, 2026
 Bookings: None
 Expected:
-- Show "24 hours available"
-- All 24 hours should be green/clickable
-- Available times: 00:00 - 23:59
+- Show "12 hours available"
+- All 12 hours (9 AM - 9 PM) should be green/clickable
+- Available times: 9:00 AM - 9:00 PM
 ```
 
 ### Scenario 2: Single Booking
 ```
 Date: April 15, 2026
-Bookings: 10:00 - 13:00
+Bookings: 10:00 AM - 1:00 PM
 Expected:
-- Show "21 hours available"
-- Hours 10, 11, 12 should be red/locked
-- Available times: 00:00 - 10:00, 13:00 - 23:59
+- Show "9 hours available"
+- Hours 10 AM, 11 AM, 12 PM should be red/locked
+- Available times: 9:00 AM - 10:00 AM, 1:00 PM - 9:00 PM
 ```
 
 ### Scenario 3: Multiple Bookings
 ```
 Date: April 15, 2026
 Bookings:
-  - 10:00 - 13:00
-  - 15:00 - 20:00
+  - 10:00 AM - 1:00 PM
+  - 3:00 PM - 6:00 PM
 Expected:
-- Show "19 hours available"
-- Hours 10,11,12,15,16,17,18,19 red/locked
-- Available times: 00:00 - 10:00, 13:00 - 15:00, 20:00 - 23:59
+- Show "7 hours available"
+- Hours 10-12 AM, 3-5 PM red/locked
+- Available times: 9:00 AM - 10:00 AM, 1:00 PM - 3:00 PM, 6:00 PM - 9:00 PM
 ```
 
-### Scenario 4: Full Day Booked
+### Scenario 4: Full Operating Hours Booked
 ```
 Date: April 15, 2026
-Bookings: 00:00 - 23:59
+Bookings: 9:00 AM - 9:00 PM
 Expected:
 - Show "0 hours available"
-- All 24 hours should be red/locked
+- All operating hours should be red/locked
 - No available time ranges shown
 ```
 
@@ -453,11 +453,11 @@ Expected:
 ```
 Date: April 15, 2026
 Bookings:
-  - 10:00 - 13:00
-  - 12:00 - 14:00 (overlaps)
+  - 10:00 AM - 1:00 PM
+  - 12:00 PM - 2:00 PM (overlaps)
 Expected:
-- System merges to: 10:00 - 14:00
-- Show "20 hours available"
+- System merges to: 10:00 AM - 2:00 PM
+- Show "7 hours available"
 ```
 
 ---

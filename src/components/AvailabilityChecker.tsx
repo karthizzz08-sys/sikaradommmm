@@ -313,7 +313,7 @@
                             const el = document.getElementById('hall');
                             if (el) el.scrollIntoView({ behavior: 'smooth' });
                           }}
-                          className="w-full gradient-violet text-primary-foreground py-6 font-bold shadow-lg hover:shadow-xl transition-all"
+                          className="w-full gradient-violet text-primary-foreground py-6 font-bold shadow-lg hover:shadow-xl transition-all hidden md:block"
                         >
                           Continue Booking →
                         </Button>

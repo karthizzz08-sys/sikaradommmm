@@ -170,8 +170,7 @@ const HallBookingSection = () => {
         `❌ This time slot is not available for 4-hour booking.\n\n` +
         `Your booking: ${value} - ${endTime}\n` +
         `Blocked: ${conflictingBooking.start_time} - ${conflictingBooking.end_time}\n` +
-        `Please choose another time.`,
-        { description: 'This time range has been blocked by the owner.' }
+        `Please choose another time.`
       );
       return;
     }

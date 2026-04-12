@@ -277,11 +277,21 @@ const HallBookingSection = () => {
                 <p className="text-xs text-muted-foreground mt-1">Select your preferred 4-hour start time</p>
               </div>
 
+              {/* Extra Hour Pricing Alert */}
+              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 flex gap-3">
+                <AlertCircle className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Extra Hour Pricing</p>
+                  <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">If you need more than 4 hours, one additional hour costs <strong>₹5,000</strong></p>
+                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">Example: 2:00 PM - 6:00 PM booking + 1 extra hour = ₹25,000 + ₹5,000</p>
+                </div>
+              </div>
+
               {/* Overlap Detection Information - Only show if there are blocked times */}
               {bookings.length > 0 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4 space-y-3">
                 <p className="text-xs text-amber-800 dark:text-amber-400">
-                  This time slot is already booked:
+                  Non Available Slots:
                 </p>
 
                 {/* Display blocked times */}
@@ -293,7 +303,7 @@ const HallBookingSection = () => {
                   ))}
                 </div>
 
-                <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold mt-2">Your 4-hour booking will be validated against these booked times.</p>
+                <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold mt-2">Your 4-hour booking will be validated against these non available slots.</p>
               </div>
               )}
               <div className="flex flex-col gap-2">
@@ -384,10 +394,10 @@ const HallBookingSection = () => {
               {bookings.length > 0 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4 space-y-3">
                 <p className="text-xs text-amber-800 dark:text-amber-400">
-                  This time slot is already booked:
+                  Non Available Slots:
                 </p>
 
-                {/* Display blocked times */}
+                {/* Display non available slots */}
                 <div className="bg-white/50 dark:bg-slate-800/50 rounded p-3 space-y-1">
                   {bookings.map((b, idx) => (
                     <p key={idx} className="text-xs text-amber-700 dark:text-amber-300">
@@ -397,7 +407,7 @@ const HallBookingSection = () => {
                 </div>
 
                 <p className="text-xs text-amber-800 dark:text-amber-400">
-                  ⚠️ Half-day bookings cannot be selected if there are any blocked times during the selected half-day period (Morning: 5:00 AM–4:00 PM or Evening: 2:00 PM–10:00 PM).
+                  ⚠️ Half-day bookings cannot be selected if there are any non available slots during the selected half-day period (Morning: 5:00 AM–4:00 PM or Evening: 2:00 PM–10:00 PM).
                 </p>
               </div>
               )}

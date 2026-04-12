@@ -9,16 +9,18 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
 import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
+import { sendBookingEmail } from '@/lib/emailService';
 
-const WHATSAPP_NUMBER = '919698678450';
-const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
+const OWNER_WHATSAPP = '919698678450';
+const OWNER_WHATSAPP_LINK = `https://wa.me/${OWNER_WHATSAPP}`;
 
 const BookingWizard = () => {
   const [step, setStep] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const store = useBookingStore();
 
   const hallPrice = store.hallDuration
@@ -118,9 +120,16 @@ const BookingWizard = () => {
       return;
     }
 
+    if (!store.customerEmail) {
+      toast.error('Email is required to send booking confirmation');
+      return;
+    }
+
     if (!validateTimeSelection()) {
       return;
     }
+
+    setIsSubmitting(true);
 
     const selections = getSelectionSummary();
     const booking = {
@@ -145,65 +154,99 @@ const BookingWizard = () => {
     const hallLabel = store.hallDuration ? hallDurations.find(d => d.id === store.hallDuration)?.label ?? store.hallDuration : 'Not Selected';
     const hallStartLabel = store.hallStartTime ? formatTimeToAmPm(store.hallStartTime) : 'Not Selected';
     const hallEndLabel = store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected';
-    const msg = encodeURIComponent(
-      `🏛️ *Sikara Mahal Booking*\n\n` +
-      `👤 Name: ${store.customerName}\n` +
+    const selectionsText = selections.map(s => `• ${s}`).join('\n');
+
+    // Send email to CUSTOMER with booking details
+    try {
+      console.log('📧 Sending email to customer...');
+      const emailSent = await sendBookingEmail({
+        customerName: store.customerName,
+        customerEmail: store.customerEmail,
+        customerPhone: store.customerPhone,
+        eventDate: booking.date,
+        hallDuration: hallLabel,
+        hallStartTime: hallStartLabel,
+        hallEndTime: hallEndLabel,
+        selections: selectionsText,
+        subtotal: formatPrice(subtotal),
+        discount: formatPrice(discount),
+        total: formatPrice(grandTotal),
+        advanceAmount: formatPrice(advanceAmount),
+        transactionId: store.transactionId,
+      });
+
+      if (emailSent) {
+        console.log('✅ Email sent to customer successfully');
+        toast.success('✅ Booking confirmation sent to your email!');
+      } else {
+        console.warn('⚠️ Email sending failed');
+        toast.error('❌ Email failed to send');
+      }
+    } catch (error) {
+      console.error('❌ Email error:', error);
+      toast.error(`❌ Email error: ${error.message}`);
+    }
+
+    // Send screenshot + details to OWNER's WhatsApp
+    const ownerMsg = (
+      `🏛️ *NEW BOOKING REQUEST*\n\n` +
+      `👤 Customer: ${store.customerName}\n` +
       `📱 Phone: ${store.customerPhone}\n` +
-      `📧 Email: ${store.customerEmail || 'N/A'}\n` +
-      `📅 Date: ${booking.date}\n` +
-      (store.hallDuration ? `🏛️ Hall: ${hallLabel}\n` : '') +
-      (store.hallDuration ? `⏰ Start Time: ${hallStartLabel}\n` : '') +
-      (store.hallDuration ? `⏰ End Time: ${hallEndLabel}\n` : '') +
-      (halfDayModeLabel ? `⏰ Half Day Mode: ${halfDayModeLabel}\n` : '') +
-      `\n📋 *Selections:*\n${selections.map(s => `• ${s}`).join('\n')}\n\n` +
-      `💰 *Subtotal: ${formatPrice(subtotal)}*\n` +
-      `🎉 *10% Discount: -${formatPrice(discount)}*\n` +
-      `💰 *Total: ${formatPrice(grandTotal)}*\n` +
-      `💳 *Advance (10%): ${formatPrice(advanceAmount)}*\n` +
-      `🧾 Transaction ID: ${store.transactionId}\n\n` +
-      (store.paymentScreenshot ? `📎 Payment screenshot: ${store.paymentScreenshot.name}\n\n` : '') +
-      `Please confirm my booking. Thank you!`
+      `📧 Email: ${store.customerEmail}\n` +
+      `📅 Date: ${booking.date}\n\n` +
+      `🏛️ Hall: ${hallLabel}\n` +
+      `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
+      `📋 *Services:*\n${selectionsText}\n\n` +
+      `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
+      `🎉 *Discount:* ${formatPrice(discount)}\n` +
+      `💰 *Total:* ${formatPrice(grandTotal)}\n` +
+      `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
+      `🧾 *Txn ID:* ${store.transactionId}`
     );
 
+    // Try to share screenshot with message using Web Share API
     if (store.paymentScreenshot && navigator.share && navigator.canShare) {
       try {
+        console.log('📸 Sharing screenshot with WhatsApp...');
         const file = store.paymentScreenshot;
         const shareData = {
-          text: decodeURIComponent(msg),
+          text: ownerMsg,
           files: [new File([file], file.name, { type: file.type })],
         };
+        
         if (navigator.canShare(shareData)) {
           await navigator.share(shareData);
-          toast.success('Booking submitted! Screenshot shared.');
+          toast.success('✅ Opening WhatsApp with screenshot...');
           store.resetSelections();
           setStep(0);
+          setIsSubmitting(false);
           return;
         }
-      } catch {
-        // fall through
+      } catch (error) {
+        console.error('Share API error:', error);
+        // Fall through to manual approach
       }
     }
 
-    // Try to open WhatsApp with message
+    // Fallback: Open WhatsApp link with message only
     try {
-      const whatsappUrl = `${WHATSAPP_LINK}?text=${msg}`;
-      const opened = window.open(whatsappUrl, '_blank');
+      const ownerMsgEncoded = encodeURIComponent(ownerMsg + `\n\n📎 Payment Screenshot: ${store.paymentScreenshot?.name || 'pending'}`);
+      const whatsappUrl = `${OWNER_WHATSAPP_LINK}?text=${ownerMsgEncoded}`;
+      window.open(whatsappUrl, '_blank');
       
-      // Fallback if window.open fails or is blocked
-      if (!opened) {
-        window.location.href = whatsappUrl;
+      if (store.paymentScreenshot) {
+        toast.info('📸 Please manually attach the payment screenshot in WhatsApp');
+      } else {
+        toast.success('✅ Opening WhatsApp...');
       }
-      
-      toast.success('Booking submitted! Opening WhatsApp...');
     } catch (error) {
       console.error('Error opening WhatsApp:', error);
-      // Fallback to direct link without message
-      window.open(WHATSAPP_LINK, '_blank');
-      toast.success('Booking submitted! Opening WhatsApp...');
+      toast.error('Unable to open WhatsApp');
     }
-    
+
     store.resetSelections();
     setStep(0);
+    setIsSubmitting(false);
   };
 
   const steps = [
@@ -430,8 +473,8 @@ const BookingWizard = () => {
                   <Input value={store.customerPhone} onChange={e => store.setCustomerPhone(e.target.value)} placeholder="+91 XXXXX XXXXX" className="mt-1" />
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-foreground">Email</label>
-                  <Input value={store.customerEmail} onChange={e => store.setCustomerEmail(e.target.value)} placeholder="your@email.com" className="mt-1" />
+                  <label className="text-sm font-semibold text-foreground">Email *</label>
+                  <Input value={store.customerEmail} onChange={e => store.setCustomerEmail(e.target.value)} placeholder="your@email.com" className="mt-1" required />
                 </div>
                 {store.eventDate && (
                   <div className="p-4 bg-accent rounded-lg">
@@ -496,9 +539,18 @@ const BookingWizard = () => {
                   <p><span className="font-semibold">Txn ID:</span> {store.transactionId}</p>
                   {store.paymentScreenshot && <p><span className="font-semibold">Screenshot:</span> {store.paymentScreenshot.name} ✅</p>}
                 </div>
-                <Button onClick={handleSubmit} className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto" size="lg">
-                  <MessageCircle className="w-5 h-5 mr-2" />
-                  Submit & Send to WhatsApp
+                <Button onClick={handleSubmit} disabled={isSubmitting} className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto" size="lg">
+                  {isSubmitting ? (
+                    <>
+                      <Mail className="w-5 h-5 mr-2 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle className="w-5 h-5 mr-2" />
+                      Submit & Send to WhatsApp & Email
+                    </>
+                  )}
                 </Button>
               </div>
             )}

@@ -162,8 +162,8 @@
                 </div>
               </div>
 
-              {/* Green date - Show quick selection button in calendar section */}
-              {selected && !isSelectedDateBooked && (
+              {/* Show quick selection button for any selected date */}
+              {selected && (
                 <Button
                   onClick={() => {
                     store.setEventDate(selected);
@@ -172,7 +172,7 @@
                   }}
                   className="w-full mt-6 gradient-violet text-primary-foreground py-6 text-base font-semibold"
                 >
-                  Select this date
+                  Select this date →
                 </Button>
               )}
             </div>
@@ -200,14 +200,14 @@
                     <div className="text-muted-foreground text-sm">Loading...</div>
                   ) : (
                     <>
-                      {/* Booked times */}
+                      {/* Non Available Slots */}
                     {bookings.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="mb-6 p-4 rounded-xl bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/30 dark:to-red-900/30 border-0 shadow-sm"
                       >
-                        <p className="font-semibold text-red-700 dark:text-red-300 text-sm mb-3">❌ Booked Times:</p>
+                        <p className="font-semibold text-red-700 dark:text-red-300 text-sm mb-3">❌ Non Available Slots:</p>
                         <div className="flex flex-wrap gap-2">
                           {bookings.map((b, idx) => (
                             <div key={idx} className="px-3 py-2 rounded-lg bg-red-200/40 dark:bg-red-800/40 text-xs font-medium text-red-700 dark:text-red-300 backdrop-blur-sm">

@@ -121,7 +121,12 @@ const BookingWizard = () => {
     }
 
     if (!store.customerEmail) {
-      toast.error('Email is required to send booking confirmation');
+      toast.error('Email is required');
+      return;
+    }
+
+    if (!store.paymentScreenshot) {
+      toast.error('Please upload payment screenshot');
       return;
     }
 
@@ -187,7 +192,7 @@ const BookingWizard = () => {
       toast.error(`❌ Email error: ${error.message}`);
     }
 
-    // Send screenshot + details to OWNER's WhatsApp
+    // Send screenshot + details to OWNER's WhatsApp (9698678450)
     const ownerMsg = (
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -201,43 +206,29 @@ const BookingWizard = () => {
       `🎉 *Discount:* ${formatPrice(discount)}\n` +
       `💰 *Total:* ${formatPrice(grandTotal)}\n` +
       `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
-      `🧾 *Txn ID:* ${store.transactionId}`
+      `🧾 *Txn ID:* ${store.transactionId}\n\n` +
+      (store.paymentScreenshot ? `📎 *Payment Screenshot:* ${store.paymentScreenshot.name}` : '📎 Payment Screenshot: Pending')
     );
 
-    // Try to share screenshot with message using Web Share API
-    if (store.paymentScreenshot && navigator.share && navigator.canShare) {
-      try {
-        console.log('📸 Sharing screenshot with WhatsApp...');
-        const file = store.paymentScreenshot;
-        const shareData = {
-          text: ownerMsg,
-          files: [new File([file], file.name, { type: file.type })],
-        };
-        
-        if (navigator.canShare(shareData)) {
-          await navigator.share(shareData);
-          toast.success('✅ Opening WhatsApp with screenshot...');
-          store.resetSelections();
-          setStep(0);
-          setIsSubmitting(false);
-          return;
-        }
-      } catch (error) {
-        console.error('Share API error:', error);
-        // Fall through to manual approach
-      }
-    }
-
-    // Fallback: Open WhatsApp link with message only
+    // Open WhatsApp with message and screenshot info
     try {
-      const ownerMsgEncoded = encodeURIComponent(ownerMsg + `\n\n📎 Payment Screenshot: ${store.paymentScreenshot?.name || 'pending'}`);
-      const whatsappUrl = `${OWNER_WHATSAPP_LINK}?text=${ownerMsgEncoded}`;
-      window.open(whatsappUrl, '_blank');
+      console.log('📱 Opening WhatsApp with booking details...');
+      console.log('📸 Screenshot attached:', store.paymentScreenshot?.name);
       
+      const ownerMsgEncoded = encodeURIComponent(ownerMsg);
+      const whatsappUrl = `https://wa.me/9698678450?text=${ownerMsgEncoded}`;
+      
+      const opened = window.open(whatsappUrl, '_blank');
+      
+      if (!opened) {
+        // Fallback if window.open is blocked
+        window.location.href = whatsappUrl;
+      }
+
       if (store.paymentScreenshot) {
-        toast.info('📸 Please manually attach the payment screenshot in WhatsApp');
+        toast.success('✅ Opening WhatsApp - Please attach the screenshot');
       } else {
-        toast.success('✅ Opening WhatsApp...');
+        toast.error('⚠️ Please upload payment screenshot!');
       }
     } catch (error) {
       console.error('Error opening WhatsApp:', error);
@@ -548,7 +539,7 @@ const BookingWizard = () => {
                   ) : (
                     <>
                       <MessageCircle className="w-5 h-5 mr-2" />
-                      Submit & Send to WhatsApp & Email
+                      Submit & Send to WhatsApp 
                     </>
                   )}
                 </Button>

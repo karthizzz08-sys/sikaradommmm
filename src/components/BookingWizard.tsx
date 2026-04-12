@@ -210,28 +210,44 @@ const BookingWizard = () => {
       `🖼️ *IMPORTANT: Please attach payment screenshot in this chat*`
     );
 
-    // Open WhatsApp with message and screenshot info
+    // Open WhatsApp with message and screenshot
     try {
       console.log('📱 Opening WhatsApp with booking details...');
       console.log('📸 Screenshot attached:', store.paymentScreenshot?.name);
       
-      const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-      const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
-      
-      const opened = window.open(whatsappUrl, '_blank');
-      
-      if (!opened) {
-        // Fallback if window.open is blocked
-        window.location.href = whatsappUrl;
-      }
-
-      if (store.paymentScreenshot) {
-        toast.success('✅ Opening WhatsApp - Please attach the screenshot');
+      // Try to share screenshot using Web Share API (works with WhatsApp)
+      if (navigator.share && store.paymentScreenshot) {
+        try {
+          await navigator.share({
+            title: 'Booking Details',
+            text: ownerMsg,
+            files: [store.paymentScreenshot]
+          });
+          toast.success('✅ Booking and screenshot shared to WhatsApp!');
+        } catch (shareError) {
+          if (shareError.name !== 'AbortError') {
+            console.log('Share API failed, falling back to WhatsApp link...');
+            // Fallback to WhatsApp link
+            const ownerMsgEncoded = encodeURIComponent(ownerMsg);
+            const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
+            window.open(whatsappUrl, '_blank');
+            toast.success('✅ Opening WhatsApp - Upload screenshot in the chat');
+          }
+        }
       } else {
-        toast.error('⚠️ Please upload payment screenshot!');
+        // Fallback for browsers without Share API
+        const ownerMsgEncoded = encodeURIComponent(ownerMsg);
+        const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
+        const opened = window.open(whatsappUrl, '_blank');
+        
+        if (!opened) {
+          window.location.href = whatsappUrl;
+        }
+        
+        toast.success('✅ Opening WhatsApp - Upload screenshot in the chat');
       }
     } catch (error) {
-      console.error('Error opening WhatsApp:', error);
+      console.error('Error with WhatsApp:', error);
       toast.error('Unable to open WhatsApp');
     }
 

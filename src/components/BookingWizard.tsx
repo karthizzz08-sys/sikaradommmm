@@ -216,7 +216,7 @@ const BookingWizard = () => {
       console.log('📸 Screenshot attached:', store.paymentScreenshot?.name);
       
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-      const whatsappUrl = `https://wa.me/9698678450?text=${ownerMsgEncoded}`;
+      const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
       
       const opened = window.open(whatsappUrl, '_blank');
       

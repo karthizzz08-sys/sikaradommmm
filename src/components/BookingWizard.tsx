@@ -15,6 +15,7 @@ import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
 import { sendBookingEmail } from '@/lib/emailService';
 
+// WhatsApp configuration
 const OWNER_WHATSAPP = import.meta.env.VITE_OWNER_WHATSAPP || '917200101470';
 const OWNER_WHATSAPP_LINK = `https://wa.me/${OWNER_WHATSAPP}`;
 
@@ -210,38 +211,46 @@ const BookingWizard = () => {
       `🖼️ *IMPORTANT: Please attach payment screenshot in this chat*`
     );
 
-    // Send booking details + screenshot to WhatsApp
+    // Send booking details to WhatsApp
     try {
-      console.log('📱 Sending to WhatsApp number: 7200101470');
-      console.log('📸 Attaching screenshot:', store.paymentScreenshot?.name);
+      console.log('📱 Sending to WhatsApp number: +91 7200101470');
+      console.log('📸 Screenshot uploaded: ', store.paymentScreenshot?.name);
       
-      // Use Web Share API to send booking details + screenshot to WhatsApp
-      if (navigator.share) {
-        const shareData = {
-          title: 'Booking Confirmation - Sikara Mahal',
-          text: ownerMsg,
-        };
+      // Encode message for WhatsApp API
+      const ownerMsgEncoded = encodeURIComponent(ownerMsg);
+      
+      // WhatsApp Business API URL format (reliable method)
+      const whatsappUrl = `https://wa.me/917200101470?text=${ownerMsgEncoded}`;
+      
+      console.log('🔗 Opening WhatsApp with booking details...');
+      
+      // Open WhatsApp in new tab
+      const whatsappWindow = window.open(whatsappUrl, '_blank', 'width=800,height=600');
+      
+      if (whatsappWindow) {
+        console.log('✅ WhatsApp window opened successfully');
         
-        // Add screenshot file if available
-        if (store.paymentScreenshot) {
-          shareData.files = [store.paymentScreenshot];
-        }
-        
-        await navigator.share(shareData);
-        console.log('✅ Booking details and screenshot sent to WhatsApp!');
-        toast.success('✅ Booking and screenshot sent to WhatsApp!');
+        // Show instructions for screenshot
+        setTimeout(() => {
+          toast.success('✅ WhatsApp opened! Please attach screenshot in the chat.');
+          console.log('📸 User should upload screenshot to WhatsApp chat');
+        }, 1000);
       } else {
-        // Fallback for browsers without Share API
-        console.log('Share API not available, opening WhatsApp link...');
-        const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-        const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP}?text=${ownerMsgEncoded}`;
-        window.open(whatsappUrl, '_blank');
-        toast.success('✅ WhatsApp opened - Please upload screenshot in chat');
+        throw new Error('WhatsApp window could not be opened');
       }
     } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Error sending to WhatsApp:', error);
-        toast.error('Unable to send to WhatsApp');
+      console.error('❌ Error opening WhatsApp:', error);
+      
+      // Fallback: Show error but keep booking
+      toast.error('⚠️ Unable to open WhatsApp automatically. Please forward this message manually.');
+      
+      // Copy message to clipboard as fallback
+      try {
+        await navigator.clipboard.writeText(ownerMsg);
+        console.log('✅ Message copied to clipboard');
+        toast.info('Message copied to clipboard - paste in WhatsApp');
+      } catch (clipboardError) {
+        console.error('Could not copy to clipboard:', clipboardError);
       }
     }
 

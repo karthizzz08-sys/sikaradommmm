@@ -290,7 +290,7 @@ const BookingWizard = () => {
                 <button
                   onClick={() => i <= step && setStep(i)}
                   className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center transition-all text-xs sm:text-sm ${
-                    i === step ? 'gradient-violet text-primary-foreground shadow-lg'
+                    i === step ? 'bg-gradient-to-br from-green-400 to-emerald-600 text-white shadow-lg'
                     : i < step ? 'bg-primary/20 text-primary'
                     : 'bg-muted text-muted-foreground'
                   }`}

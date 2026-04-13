@@ -146,15 +146,23 @@
                 onSelect={setSelected}
                 disabled={(date) => date < new Date()}
                 className="p-3 pointer-events-auto"
-                modifiers={{ booked: bookedDates }}
+                modifiers={{
+                  booked: bookedDates,
+                  selectedAvailable: selected && !bookedDates.some(bd => bd.toDateString() === selected.toDateString()) ? [selected] : []
+                }}
                 modifiersStyles={{
                   booked: { backgroundColor: '#a78bfa', color: '#fff', fontWeight: 'bold' },
+                  selectedAvailable: { backgroundColor: '#10b981', color: '#fff', fontWeight: 'bold', border: '3px solid #059669' },
                 }}
               />
               <div className="flex gap-4 mt-6 text-xs justify-center items-center flex-wrap">
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
+                  <span className="w-3 h-3 rounded bg-gray-400 border border-gray-500" />
+                  <span className="text-foreground font-medium">Available</span>
+                </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
                   <span className="w-3 h-3 rounded bg-green-500 border border-green-600" />
-                  <span className="text-foreground font-medium">Available</span>
+                  <span className="text-foreground font-medium">Selected</span>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#a78bfa', borderColor: '#a78bfa' }}></span>

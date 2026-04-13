@@ -15,7 +15,7 @@ import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
 import { sendBookingEmail } from '@/lib/emailService';
 
-const OWNER_WHATSAPP = '919698678450';
+const OWNER_WHATSAPP = import.meta.env.VITE_OWNER_WHATSAPP || '917200101470';
 const OWNER_WHATSAPP_LINK = `https://wa.me/${OWNER_WHATSAPP}`;
 
 const BookingWizard = () => {
@@ -60,7 +60,7 @@ const BookingWizard = () => {
     if (store.hallDuration) {
       const h = hallDurations.find(d => d.id === store.hallDuration);
       items.push(`Hall: ${h?.label}`);
-      if (store.hallDuration === '4hrs') {
+        if (store.hallDuration === '4hrs') {
         items.push(`Start Time: ${store.hallStartTime ? formatTimeToAmPm(store.hallStartTime) : 'Not Selected'}`);
         items.push(`End Time: ${store.hallEndTime ? formatTimeToAmPm(store.hallEndTime) : 'Not Selected'}`);
       } else {
@@ -192,7 +192,7 @@ const BookingWizard = () => {
       toast.error(`❌ Email error: ${error.message}`);
     }
 
-    // Send screenshot + details to OWNER's WhatsApp (919698678450)
+    // Send screenshot + details to OWNER's WhatsApp (917200101470)
     const ownerMsg = (
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -210,45 +210,39 @@ const BookingWizard = () => {
       `🖼️ *IMPORTANT: Please attach payment screenshot in this chat*`
     );
 
-    // Open WhatsApp with message and screenshot
+    // Send booking details + screenshot to WhatsApp
     try {
-      console.log('📱 Opening WhatsApp with booking details...');
-      console.log('📸 Screenshot attached:', store.paymentScreenshot?.name);
+      console.log('📱 Sending to WhatsApp number: 7200101470');
+      console.log('📸 Attaching screenshot:', store.paymentScreenshot?.name);
       
-      // Try to share screenshot using Web Share API (works with WhatsApp)
-      if (navigator.share && store.paymentScreenshot) {
-        try {
-          await navigator.share({
-            title: 'Booking Details',
-            text: ownerMsg,
-            files: [store.paymentScreenshot]
-          });
-          toast.success('✅ Booking and screenshot shared to WhatsApp!');
-        } catch (shareError) {
-          if (shareError.name !== 'AbortError') {
-            console.log('Share API failed, falling back to WhatsApp link...');
-            // Fallback to WhatsApp link
-            const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-            const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
-            window.open(whatsappUrl, '_blank');
-            toast.success('✅ Opening WhatsApp - Upload screenshot in the chat');
-          }
+      // Use Web Share API to send booking details + screenshot to WhatsApp
+      if (navigator.share) {
+        const shareData = {
+          title: 'Booking Confirmation - Sikara Mahal',
+          text: ownerMsg,
+        };
+        
+        // Add screenshot file if available
+        if (store.paymentScreenshot) {
+          shareData.files = [store.paymentScreenshot];
         }
+        
+        await navigator.share(shareData);
+        console.log('✅ Booking details and screenshot sent to WhatsApp!');
+        toast.success('✅ Booking and screenshot sent to WhatsApp!');
       } else {
         // Fallback for browsers without Share API
+        console.log('Share API not available, opening WhatsApp link...');
         const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-        const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
-        const opened = window.open(whatsappUrl, '_blank');
-        
-        if (!opened) {
-          window.location.href = whatsappUrl;
-        }
-        
-        toast.success('✅ Opening WhatsApp - Upload screenshot in the chat');
+        const whatsappUrl = `https://wa.me/${OWNER_WHATSAPP}?text=${ownerMsgEncoded}`;
+        window.open(whatsappUrl, '_blank');
+        toast.success('✅ WhatsApp opened - Please upload screenshot in chat');
       }
     } catch (error) {
-      console.error('Error with WhatsApp:', error);
-      toast.error('Unable to open WhatsApp');
+      if (error.name !== 'AbortError') {
+        console.error('Error sending to WhatsApp:', error);
+        toast.error('Unable to send to WhatsApp');
+      }
     }
 
     store.resetSelections();

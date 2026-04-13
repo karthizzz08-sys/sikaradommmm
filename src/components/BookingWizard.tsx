@@ -16,7 +16,7 @@ import PriceSummary from '@/components/PriceSummary';
 import { sendBookingEmail } from '@/lib/emailService';
 
 // WhatsApp configuration
-const OWNER_WHATSAPP = import.meta.env.VITE_OWNER_WHATSAPP || '917200101470';
+const OWNER_WHATSAPP = import.meta.env.VITE_OWNER_WHATSAPP || '919698678450';
 const OWNER_WHATSAPP_LINK = `https://wa.me/${OWNER_WHATSAPP}`;
 
 const BookingWizard = () => {
@@ -116,7 +116,7 @@ const BookingWizard = () => {
   };
 
   const handleSubmit = async () => {
-    if (!store.customerName || !store.customerPhone || !store.transactionId) {
+    if (!store.customerName || !store.customerPhone) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -193,7 +193,7 @@ const BookingWizard = () => {
       toast.error(`❌ Email error: ${error.message}`);
     }
 
-    // Send screenshot + details to OWNER's WhatsApp (917200101470)
+    // Send screenshot + details to OWNER's WhatsApp (9698678450)
     const ownerMsg = (
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -213,14 +213,14 @@ const BookingWizard = () => {
 
     // Send booking details to WhatsApp
     try {
-      console.log('📱 Sending to WhatsApp number: +91 7200101470');
+      console.log('📱 Sending to WhatsApp number: +91 9698678450');
       console.log('📸 Screenshot uploaded: ', store.paymentScreenshot?.name);
       
       // Encode message for WhatsApp API
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
       
       // WhatsApp Business API URL format (reliable method)
-      const whatsappUrl = `https://wa.me/917200101470?text=${ownerMsgEncoded}`;
+      const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
       
       console.log('🔗 Opening WhatsApp with booking details...');
       
@@ -522,8 +522,8 @@ const BookingWizard = () => {
                   </label>
                 </div>
                 <div>
-                  <label className="text-sm font-semibold text-foreground">Transaction ID *</label>
-                  <Input value={store.transactionId} onChange={e => store.setTransactionId(e.target.value)} placeholder="Enter UPI Transaction ID" className="mt-1" />
+                  <label className="text-sm font-semibold text-foreground">Transaction ID <span className="text-muted-foreground">(optional)</span></label>
+                  <Input value={store.transactionId} onChange={e => store.setTransactionId(e.target.value)} placeholder="Enter UPI Transaction ID (optional)" className="mt-1" />
                 </div>
               </div>
             )}
@@ -546,7 +546,7 @@ const BookingWizard = () => {
                   <p><span className="font-semibold">Discount (10%):</span> <span className="text-destructive">-{formatPrice(discount)}</span></p>
                   <p><span className="font-semibold">Total:</span> {formatPrice(grandTotal)}</p>
                   <p><span className="font-semibold">Advance:</span> {formatPrice(advanceAmount)}</p>
-                  <p><span className="font-semibold">Txn ID:</span> {store.transactionId}</p>
+                  <p><span className="font-semibold">Txn ID:</span> {store.transactionId || 'N/A'}</p>
                   {store.paymentScreenshot && <p><span className="font-semibold">Screenshot:</span> {store.paymentScreenshot.name} ✅</p>}
                 </div>
                 <Button onClick={handleSubmit} disabled={isSubmitting} className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto" size="lg">

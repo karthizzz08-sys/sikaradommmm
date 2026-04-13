@@ -272,10 +272,6 @@ const HallBookingSection = () => {
 
           {hallDuration === '4hrs' && (
             <div id="hall-4hrs-timing" className="mt-6 flex flex-col gap-4">
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-2">
-                <h4 className="font-semibold text-primary text-sm">⏰ Set Your Timing</h4>
-                <p className="text-xs text-muted-foreground mt-1">Select your preferred 4-hour start time</p>
-              </div>
 
               {/* Extra Hour Pricing Alert */}
               <div className="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4 flex gap-3">
@@ -283,7 +279,6 @@ const HallBookingSection = () => {
                 <div>
                   <p className="text-sm font-semibold text-blue-900 dark:text-blue-100">Extra Hour Pricing</p>
                   <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">If you need more than 4 hours, one additional hour costs <strong>₹5,000</strong></p>
-                  <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">Example: 2:00 PM - 6:00 PM booking + 1 extra hour = ₹25,000 + ₹5,000</p>
                 </div>
               </div>
 

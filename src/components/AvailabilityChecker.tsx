@@ -224,12 +224,12 @@
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="mb-6 p-4 rounded-xl bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/30 dark:to-cyan-900/30 border-0 shadow-sm"
+                        className="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 border-0 shadow-sm"
                       >
-                        <p className="font-semibold text-blue-700 dark:text-blue-300 text-sm mb-3">📍 Available Ranges:</p>
+                        <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm mb-3">📍 Available Ranges:</p>
                         <div className="flex flex-wrap gap-2">
                           {availableSlots.map((slot, idx) => (
-                            <div key={idx} className="px-3 py-2 rounded-lg bg-blue-200/40 dark:bg-blue-800/40 text-xs font-medium text-blue-700 dark:text-blue-300 backdrop-blur-sm">
+                            <div key={idx} className="px-3 py-2 rounded-lg bg-emerald-200/40 dark:bg-emerald-800/40 text-xs font-medium text-emerald-700 dark:text-emerald-300 backdrop-blur-sm">
                               {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
                             </div>
                           ))}

@@ -105,7 +105,6 @@
     const handleSelectHour = (hour: string) => {
       setSelectedHour(hour);
       store.setEventDate(selected!);
-      toast.success(`✅ Selected: ${formatTimeToAmPm(hour)}`);
       // Scroll to booking section
       const el = document.getElementById('hall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });

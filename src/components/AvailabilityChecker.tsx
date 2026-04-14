@@ -184,8 +184,8 @@
                 </div>
               </div>
 
-              {/* Show quick selection button for any selected date */}
-              {selected && (
+              {/* Show quick selection button only for non-booked (available) dates */}
+              {selected && !isSelectedDateBooked && (
                 <div id="select-date-button">
                   <Button
                     onClick={() => {

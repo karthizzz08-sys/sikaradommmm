@@ -198,6 +198,18 @@ const BookingWizard = () => {
     let screenshotLink = '';
     try {
       console.log('📸 Uploading payment screenshot...');
+      console.log('🔍 Screenshot details:', {
+        name: store.paymentScreenshot?.name,
+        size: `${(store.paymentScreenshot?.size ?? 0 / 1024).toFixed(2)} KB`,
+        type: store.paymentScreenshot?.type,
+        customerName: store.customerName,
+        phoneNumber: store.customerPhone,
+      });
+
+      if (!store.paymentScreenshot) {
+        throw new Error('Screenshot file is missing');
+      }
+
       const uploadResult = await uploadPaymentScreenshot(
         store.paymentScreenshot,
         store.customerName,
@@ -207,15 +219,20 @@ const BookingWizard = () => {
       if (uploadResult) {
         screenshotLink = uploadResult.url;
         console.log('✅ Screenshot uploaded successfully');
-        console.log('🔗 Screenshot link:', screenshotLink);
-        toast.info('✅ Payment screenshot uploaded');
+        console.log('🔗 Screenshot URL:', screenshotLink);
+        toast.success('✅ Payment screenshot uploaded to storage');
       } else {
-        console.warn('⚠️ Screenshot upload failed - will proceed without link');
-        toast.warning('⚠️ Could not upload screenshot automatically');
+        console.warn('⚠️ Screenshot upload returned null - Supabase bucket may not exist or may not be public');
+        toast.warning('⚠️ Screenshot upload failed - Check browser console and Supabase bucket configuration');
       }
     } catch (error) {
-      console.error('❌ Screenshot upload error:', error);
-      toast.error(`⚠️ Screenshot upload failed: ${error.message}`);
+      console.error('❌ Screenshot upload error:', {
+        message: error instanceof Error ? error.message : String(error),
+        error: error,
+        supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+        bucketName: 'payment-screenshots',
+      });
+      toast.error(`⚠️ Screenshot upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
     // Send screenshot + details to OWNER's WhatsApp (9698678450)
@@ -557,13 +574,50 @@ const BookingWizard = () => {
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-foreground">Upload Payment Screenshot *</label>
-                  <label className="mt-2 flex items-center gap-3 p-4 bg-muted rounded-lg border-2 border-dashed border-border cursor-pointer hover:border-primary transition-colors">
-                    <Upload className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground truncate">
-                      {store.paymentScreenshot ? store.paymentScreenshot.name : 'Click to upload screenshot'}
+                  <label className={`mt-2 flex items-center gap-3 p-4 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+                    store.paymentScreenshot 
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-600' 
+                      : 'bg-muted border-border hover:border-primary'
+                  }`}>
+                    <Upload className={`w-5 h-5 flex-shrink-0 ${
+                      store.paymentScreenshot 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : 'text-muted-foreground'
+                    }`} />
+                    <span className={`text-sm truncate ${
+                      store.paymentScreenshot 
+                        ? 'text-green-700 dark:text-green-300 font-semibold' 
+                        : 'text-muted-foreground'
+                    }`}>
+                      {store.paymentScreenshot ? `✅ ${store.paymentScreenshot.name}` : 'Click to upload screenshot'}
                     </span>
-                    <input type="file" accept="image/*" className="hidden" onChange={(e) => store.setPaymentScreenshot(e.target.files?.[0] ?? null)} />
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] ?? null;
+                        if (file) {
+                          console.log('📸 File selected:', file.name, `(${(file.size / 1024).toFixed(2)} KB)`, `Type: ${file.type}`);
+                          if (!file.type.startsWith('image/')) {
+                            toast.error('❌ Please select a valid image file');
+                            console.error('❌ Invalid file type:', file.type);
+                            return;
+                          }
+                          if (file.size > 10 * 1024 * 1024) {
+                            toast.error('❌ File size must be less than 10MB');
+                            console.error('❌ File too large:', file.size);
+                            return;
+                          }
+                          store.setPaymentScreenshot(file);
+                          toast.success('✅ Screenshot selected!');
+                        }
+                      }} 
+                    />
                   </label>
+                  {!store.paymentScreenshot && (
+                    <p className="text-xs text-destructive mt-2 font-semibold">⚠️ Screenshot is required to proceed</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-foreground">Transaction ID <span className="text-muted-foreground">(optional)</span></label>
@@ -593,7 +647,12 @@ const BookingWizard = () => {
                   <p><span className="font-semibold">Txn ID:</span> {store.transactionId || 'N/A'}</p>
                   {store.paymentScreenshot && <p><span className="font-semibold">Screenshot:</span> {store.paymentScreenshot.name} ✅</p>}
                 </div>
-                <Button onClick={handleSubmit} disabled={isSubmitting} className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto" size="lg">
+                <Button 
+                  onClick={handleSubmit} 
+                  disabled={isSubmitting || !store.paymentScreenshot} 
+                  className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed" 
+                  size="lg"
+                >
                   {isSubmitting ? (
                     <>
                       <Mail className="w-5 h-5 mr-2 animate-spin" />

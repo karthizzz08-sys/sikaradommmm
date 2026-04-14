@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
  * Returns public URL for sharing in WhatsApp
  */
 export const uploadPaymentScreenshot = async (
-  file: File,
+  file: File | null,
   customerName: string,
   phoneNumber: string
 ): Promise<{ url: string; filename: string } | null> => {
@@ -15,30 +15,52 @@ export const uploadPaymentScreenshot = async (
       return null;
     }
 
+    console.log('📸 Starting screenshot upload...');
+    console.log('📄 File details:', {
+      name: file.name,
+      size: `${(file.size / 1024).toFixed(2)} KB`,
+      type: file.type,
+      lastModified: new Date(file.lastModified).toISOString(),
+    });
+
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      console.error('❌ File must be an image');
+      console.error('❌ File must be an image. Received:', file.type);
       return null;
     }
+
+    console.log('✅ File type validated:', file.type);
 
     // Create unique filename
     const timestamp = Date.now();
     const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
-    const filename = `${sanitizedName}_${phoneNumber}_${timestamp}.${file.name.split('.').pop()}`;
+    const extension = file.name.split('.').pop() || 'jpg';
+    const filename = `${sanitizedName}_${phoneNumber}_${timestamp}.${extension}`;
 
-    console.log(`📤 Uploading screenshot: ${filename}`);
+    console.log(`📤 Uploading with filename: ${filename}`);
 
     // Upload to Supabase storage
     const { data, error } = await supabase.storage
       .from('payment-screenshots')
-      .upload(`bookings/${filename}`, file);
+      .upload(`bookings/${filename}`, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
 
     if (error) {
-      console.error('❌ Upload error:', error.message);
+      console.error('❌ Upload error:', {
+        message: error.message,
+        status: error.statusCode,
+        error: error,
+      });
       return null;
     }
 
-    console.log('✅ File uploaded:', data);
+    console.log('✅ File uploaded successfully:', {
+      path: data.path,
+      id: data.id,
+      fullPath: data.fullPath,
+    });
 
     // Get public URL
     const { data: publicData } = supabase.storage
@@ -53,13 +75,17 @@ export const uploadPaymentScreenshot = async (
     }
 
     console.log('✅ Public URL generated:', publicUrl);
+    console.log('🎉 Screenshot upload completed successfully!');
 
     return {
       url: publicUrl,
       filename: data.path,
     };
   } catch (error) {
-    console.error('❌ Screenshot upload error:', error);
+    console.error('❌ Screenshot upload error:', {
+      message: error instanceof Error ? error.message : String(error),
+      error: error,
+    });
     return null;
   }
 };
@@ -69,6 +95,8 @@ export const uploadPaymentScreenshot = async (
  */
 export const deletePaymentScreenshot = async (filename: string): Promise<boolean> => {
   try {
+    console.log('🗑️ Deleting screenshot:', filename);
+
     const { error } = await supabase.storage
       .from('payment-screenshots')
       .remove([filename]);

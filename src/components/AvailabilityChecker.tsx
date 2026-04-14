@@ -19,7 +19,6 @@
     const [selected, setSelected] = useState<Date | undefined>();
     const [bookings, setBookings] = useState<BookingSlot[]>([]);
     const [availableSlots, setAvailableSlots] = useState<Array<{ start: string; end: string }>>([]);
-    const [selectedHour, setSelectedHour] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
     const store = useBookingStore();
@@ -59,73 +58,39 @@
         setBookings([]);
         setAvailableSlots([{ start: '00:00', end: '23:59' }]);
       }
-      setSelectedHour(null);
       setLoading(false);
 
       // Auto-scroll to availability slots when booked date is selected
       const isBooked = data && data.length > 0;
       if (isBooked) {
-        // Delay to allow DOM to update
+        // Delay to allow DOM to update - longer delay for better smoothness
         setTimeout(() => {
           const el = document.querySelector('[data-availability-slots]');
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
-        }, 300);
+        }, 350);
       }
     };
 
-    // Check if a specific hour is booked
-    const isHourBooked = (hour: number): boolean => {
-      return bookings.some(booking => {
-        const [startH, startM] = booking.start_time.split(':').map(Number);
-        const [endH, endM] = booking.end_time.split(':').map(Number);
-        const startMinutes = startH * 60 + startM;
-        const endMinutes = endH * 60 + endM;
-        const hourMinutes = hour * 60;
-        const nextHourMinutes = (hour + 1) * 60;
-        return hourMinutes < endMinutes && nextHourMinutes > startMinutes;
-      });
-    };
 
-    // Generate hourly display for all 24 hours with booking status
-    const getHourlyDisplay = () => {
-      const allHours: { hour: string; available: boolean }[] = [];
-      
-      // Generate all 24 hours (00:00 to 23:00)
-      for (let h = 0; h < 24; h++) {
-        const hour = `${String(h).padStart(2, '0')}:00`;
-        // Hour is available if it's NOT booked
-        const available = !isHourBooked(h);
-        allHours.push({ hour, available });
-      }
-      return allHours;
-    };
-
-    const handleSelectHour = (hour: string) => {
-      setSelectedHour(hour);
-      store.setEventDate(selected!);
-      // Scroll to booking section
-      const el = document.getElementById('hall');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    // Auto-scroll to "Select this date" button when a date is selected (both booked and non-booked)
-    useEffect(() => {
-      if (selected) {
-        setTimeout(() => {
-          const el = document.getElementById('select-date-button');
-          if (el) {
-            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          }
-        }, 200);
-      }
-    }, [selected]);
 
     // Check if selected date is a booked date (violet)
     const isSelectedDateBooked = selected
       ? bookedDates.some(d => d.toDateString() === selected.toDateString())
       : false;
+
+    // Auto-scroll to availability slots when a booked date is selected
+    useEffect(() => {
+      if (selected && isSelectedDateBooked) {
+        setTimeout(() => {
+          const el = document.querySelector('[data-availability-slots]');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 400);
+      }
+    }, [selected, isSelectedDateBooked]);
 
     return (
       <section id="availability" className="min-h-screen w-full flex flex-col items-center justify-center py-8 md:py-12 px-4">
@@ -192,9 +157,9 @@
                       const el = document.getElementById('hall');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="w-full mt-6 gradient-violet text-primary-foreground py-6 text-base font-semibold"
+                    className="w-full mt-6 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white py-4 px-6 text-base font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-violet-500 hover:border-violet-600 flex items-center justify-center gap-2 hover:scale-105 active:scale-95"
                   >
-                    Select this date →
+                    Select this date 
                   </Button>
                 </div>
               )}
@@ -237,9 +202,13 @@
                             <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">❌ Non Available Slots:</p>
                             <div className="flex flex-wrap gap-2">
                               {bookings.map((b, idx) => (
-                                <div key={idx} className="px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/50">
+                                <button
+                                  key={idx}
+                                  disabled
+                                  className="px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-700 dark:text-red-300 border-2 border-red-200 dark:border-red-700/50 cursor-not-allowed opacity-60 transition-all duration-200"
+                                >
                                   {formatTimeToAmPm(b.start_time)} – {formatTimeToAmPm(b.end_time)}
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>
@@ -251,60 +220,22 @@
                             <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">✅ Available Ranges:</p>
                             <div className="flex flex-wrap gap-2">
                               {availableSlots.map((slot, idx) => (
-                                <div key={idx} className="px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/50">
+                                <button
+                                  key={idx}
+                                  onClick={() => {
+                                    store.setEventDate(selected!);
+                                    const el = document.getElementById('hall');
+                                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                                  }}
+                                  className="px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700/50 hover:bg-green-200 dark:hover:bg-green-900/50 hover:border-green-400 dark:hover:border-green-600 transition-all duration-200 cursor-pointer active:scale-95"
+                                >
                                   {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
-                                </div>
+                                </button>
                               ))}
                             </div>
                           </div>
                         )}
                       </motion.div>
-
-                    {/* Hourly grid - All 24 hours with booking status */}
-                    <div className="mt-6">
-                      <div className="mb-4">
-                        <p className="text-xs text-muted-foreground">Showing all 24 hours (9:00 AM–9:00 PM) for {format(selected, 'MMMM d, yyyy')}</p>
-                      </div>
-                      <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
-                        {getHourlyDisplay().map((slot, idx) => (
-                          <motion.button
-                            key={idx}
-                            whileHover={slot.available ? { scale: 1.12, y: -3 } : {}}
-                            whileTap={slot.available ? { scale: 0.95 } : {}}
-                            onClick={() => slot.available && handleSelectHour(slot.hour)}
-                            disabled={!slot.available}
-                            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                            title={slot.available ? `Available: ${formatTimeToAmPm(slot.hour)}` : `Booked: ${formatTimeToAmPm(slot.hour)}`}
-                            className={`py-2 px-2 rounded-lg font-bold transition-all duration-200 flex items-center justify-center gap-0.5 text-xs ${
-                              slot.available
-                                ? selectedHour === slot.hour
-                                  ? 'bg-gradient-to-br from-violet-500 to-purple-600 text-white shadow-lg shadow-purple-400/50 ring-2 ring-purple-300 dark:ring-purple-700 scale-105'
-                                  : 'bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 text-emerald-700 dark:text-emerald-300 hover:shadow-md hover:from-emerald-200 hover:to-green-200 dark:hover:from-emerald-900/60 dark:hover:to-green-900/60 cursor-pointer border border-emerald-200 dark:border-emerald-700/50'
-                                : 'bg-gradient-to-br from-rose-200 to-red-200 dark:from-rose-900/50 dark:to-red-900/50 text-rose-600 dark:text-rose-300 cursor-not-allowed opacity-60 border border-rose-300 dark:border-rose-700/50'
-                            }`}
-                          >
-                            {!slot.available && <Lock className="w-3 h-3" />}
-                            {formatTimeToAmPm(slot.hour)}
-                          </motion.button>
-                        ))}
-                      </div>
-
-                      {/* Legend */}
-                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-4 text-xs">
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded bg-gradient-to-br from-emerald-100 to-green-100 border border-emerald-200"></div>
-                          <span className="text-foreground">Available</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-4 h-4 rounded bg-gradient-to-br from-violet-500 to-purple-600 border border-purple-300"></div>
-                          <span className="text-foreground">Selected</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Lock className="w-4 h-4 text-rose-600 dark:text-rose-300" />
-                          <span className="text-foreground">Booked/Unavailable</span>
-                        </div>
-                      </div>
-                    </div>
                   </>
                 )}
                 </div>

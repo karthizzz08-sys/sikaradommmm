@@ -91,6 +91,7 @@ export interface BookingState {
   setHallHalfMode: (mode: '' | 'morning' | 'afternoon' | 'evening') => void;
   addBooking: (record: BookingRecord) => void;
   resetSelections: () => void;
+  resetHistory: () => void;
 }
 
 const loadHistory = (): BookingRecord[] => {
@@ -225,4 +226,8 @@ export const useBookingStore = create<BookingState>((set) => ({
     hallEndTime: '',
     hallHalfMode: '',
   }),
+  resetHistory: () => {
+    localStorage.removeItem('sikara-bookings');
+    return set({ bookingHistory: [] });
+  },
 }));

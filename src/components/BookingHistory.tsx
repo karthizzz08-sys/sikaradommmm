@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import { useBookingStore, BookingRecord } from '@/lib/bookingStore';
 import { hallDurations, formatPrice, formatPriceForPdf, formatTimeToAmPm } from '@/lib/bookingData';
-import { Download, CheckCircle2, ClipboardList, MessageCircle } from 'lucide-react';
+import { Download, CheckCircle2, ClipboardList, MessageCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
 const WHATSAPP_NUMBER = '919698678450';
@@ -159,11 +161,18 @@ const handleWhatsAppClick = () => {
 };
 
 const BookingHistory = () => {
-  const { bookingHistory, customerPhone } = useBookingStore();
+  const { bookingHistory, customerPhone, resetHistory } = useBookingStore();
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const userBookings = customerPhone
     ? bookingHistory.filter(b => b.phone === customerPhone)
     : bookingHistory;
+
+  const handleResetHistory = () => {
+    resetHistory();
+    setShowConfirm(false);
+    toast.success('Booking history cleared!');
+  };
 
   if (userBookings.length === 0) return null;
 
@@ -174,12 +183,49 @@ const BookingHistory = () => {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8 sm:mb-10"
+          className="text-center mb-8 sm:mb-10 flex flex-col items-center justify-center gap-4"
         >
-          <span className="text-primary font-semibold text-sm tracking-widest uppercase">
-            <ClipboardList className="inline w-4 h-4 mr-1" /> History
-          </span>
-          <h2 className="section-title mt-2 text-xl sm:text-2xl">Your Booking History</h2>
+          <div>
+            <span className="text-primary font-semibold text-sm tracking-widest uppercase">
+              <ClipboardList className="inline w-4 h-4 mr-1" /> History
+            </span>
+            <h2 className="section-title mt-2 text-xl sm:text-2xl">Your Booking History</h2>
+          </div>
+
+          {/* Reset History Button */}
+          {showConfirm ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex gap-2 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50"
+            >
+              <p className="text-sm text-red-600 dark:text-red-400">Clear all history?</p>
+              <Button
+                onClick={handleResetHistory}
+                size="sm"
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Yes, Clear
+              </Button>
+              <Button
+                onClick={() => setShowConfirm(false)}
+                size="sm"
+                variant="outline"
+              >
+                Cancel
+              </Button>
+            </motion.div>
+          ) : (
+            <Button
+              onClick={() => setShowConfirm(true)}
+              variant="outline"
+              size="sm"
+              className="text-red-600 hover:text-red-700 dark:text-red-400 border-red-200 hover:bg-red-50 dark:border-red-700/50 dark:hover:bg-red-900/20"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Reset History
+            </Button>
+          )}
         </motion.div>
 
         <div className="space-y-4">

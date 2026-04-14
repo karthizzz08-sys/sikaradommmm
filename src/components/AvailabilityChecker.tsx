@@ -224,42 +224,41 @@
                     <div className="text-muted-foreground text-sm">Loading...</div>
                   ) : (
                     <>
-                      {/* Non Available Slots */}
-                    {bookings.length > 0 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mb-6 p-4 rounded-xl bg-gradient-to-r from-rose-50 to-red-50 dark:from-rose-900/30 dark:to-red-900/30 border-0 shadow-sm"
-                      >
-                        <p className="font-semibold text-red-700 dark:text-red-300 text-sm mb-3">❌ Non Available Slots:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {bookings.map((b, idx) => (
-                            <div key={idx} className="px-3 py-2 rounded-lg bg-red-200/40 dark:bg-red-800/40 text-xs font-medium text-red-700 dark:text-red-300 backdrop-blur-sm">
-                              {formatTimeToAmPm(b.start_time)} – {formatTimeToAmPm(b.end_time)}
-                            </div>
-                          ))}
-                        </div>
-                      </motion.div>
-                    )}
-
-                    {/* Available time ranges */}
-                    {availableSlots.length > 0 && (
+                      {/* Combined Time Slots Box */}
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/30 dark:to-green-900/30 border-0 shadow-sm"
+                        className="mb-6 p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md"
                       >
-                        <p className="font-semibold text-emerald-700 dark:text-emerald-300 text-sm mb-3">📍 Available Ranges:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {availableSlots.map((slot, idx) => (
-                            <div key={idx} className="px-3 py-2 rounded-lg bg-emerald-200/40 dark:bg-emerald-800/40 text-xs font-medium text-emerald-700 dark:text-emerald-300 backdrop-blur-sm">
-                              {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
+                        {/* Non Available Slots */}
+                        {bookings.length > 0 && (
+                          <div className="mb-6">
+                            <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">❌ Non Available Slots:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {bookings.map((b, idx) => (
+                                <div key={idx} className="px-3 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700/50">
+                                  {formatTimeToAmPm(b.start_time)} – {formatTimeToAmPm(b.end_time)}
+                                </div>
+                              ))}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        )}
+
+                        {/* Available time ranges */}
+                        {availableSlots.length > 0 && (
+                          <div>
+                            <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">✅ Available Ranges:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {availableSlots.map((slot, idx) => (
+                                <div key={idx} className="px-3 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-300 border border-green-200 dark:border-green-700/50">
+                                  {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </motion.div>
-                    )}
 
                     {/* Hourly grid - All 24 hours with booking status */}
                     <div className="mt-6">

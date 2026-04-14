@@ -306,43 +306,6 @@
                         </div>
                       </div>
                     </div>
-
-                    {selectedHour && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        className="mt-8 p-6 rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-700/50 text-center shadow-lg shadow-purple-200/50 dark:shadow-purple-900/30"
-                      >
-                        <div className="flex items-center justify-center gap-2 mb-3">
-                          <motion.span
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-                            className="flex items-center justify-center w-6 h-6 rounded-full bg-violet-500 text-white"
-                          >
-                            ✓
-                          </motion.span>
-                          <p className="font-bold text-violet-900 dark:text-violet-300 text-lg">
-                            Selected: {selectedHour ? formatTimeToAmPm(selectedHour) : ''}
-                          </p>
-                        </div>
-                        <p className="text-sm text-violet-700 dark:text-violet-400 mb-4">
-                          {format(selected, 'EEEE, MMMM d, yyyy')}
-                        </p>
-                        <Button
-                          onClick={() => {
-                            store.setEventDate(selected);
-                            const el = document.getElementById('hall');
-                            if (el) el.scrollIntoView({ behavior: 'smooth' });
-                          }}
-                          className="w-full gradient-violet text-primary-foreground py-6 font-bold shadow-lg hover:shadow-xl transition-all hidden md:block"
-                        >
-                          Continue Booking →
-                        </Button>
-                      </motion.div>
-                    )}
                   </>
                 )}
                 </div>

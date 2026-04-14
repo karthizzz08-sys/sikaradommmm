@@ -147,7 +147,7 @@ export const cateringPackages: CateringPackage[] = [
   {
     id: 'lunch-veg-custom',
     name: 'Veg Lunch (Traditional)',
-    pricePerHead: 300,
+    pricePerHead: 250,
     category: 'lunch',
     includes: ['Halwa', 'Ponni Arisi Soru', 'Kalyana Sambar', 'Kovai Milagu Rasam', 'Vatha Kulambu', 'Urulaikilangu Double Beans Roast', 'Pachapayir Carrot Poriyal', 'Chow Chow Senai Kootu', 'Appalam', 'Gothumai Rava Payasam', 'Medhu Vadai', 'Mango Pickle', 'Water Bottle', 'Ice Cream', 'Banana Leaf', 'Paper Roll & Service'],
   },

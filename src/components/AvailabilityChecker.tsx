@@ -62,14 +62,16 @@
       setSelectedHour(null);
       setLoading(false);
 
-      // Auto-scroll to availability slots on mobile for booked dates
+      // Auto-scroll to availability slots when booked date is selected
       const isBooked = data && data.length > 0;
-      if (isBooked && window.innerWidth < 768) {
+      if (isBooked) {
         // Delay to allow DOM to update
         setTimeout(() => {
           const el = document.querySelector('[data-availability-slots]');
-          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 100);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 300);
       }
     };
 
@@ -108,6 +110,18 @@
       const el = document.getElementById('hall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     };
+
+    // Auto-scroll to "Select this date" button when a date is selected (both booked and non-booked)
+    useEffect(() => {
+      if (selected) {
+        setTimeout(() => {
+          const el = document.getElementById('select-date-button');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 200);
+      }
+    }, [selected]);
 
     // Check if selected date is a booked date (violet)
     const isSelectedDateBooked = selected
@@ -172,16 +186,18 @@
 
               {/* Show quick selection button for any selected date */}
               {selected && (
-                <Button
-                  onClick={() => {
-                    store.setEventDate(selected);
-                    const el = document.getElementById('hall');
-                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className="w-full mt-6 gradient-violet text-primary-foreground py-6 text-base font-semibold"
-                >
-                  Select this date →
-                </Button>
+                <div id="select-date-button">
+                  <Button
+                    onClick={() => {
+                      store.setEventDate(selected);
+                      const el = document.getElementById('hall');
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full mt-6 gradient-violet text-primary-foreground py-6 text-base font-semibold"
+                  >
+                    Select this date →
+                  </Button>
+                </div>
               )}
             </div>
             </motion.div>
@@ -190,6 +206,7 @@
             {selected && isSelectedDateBooked && (
               <motion.div
                 data-availability-slots
+                id="availability-slots"
                 initial={{ opacity: 0, x: 20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.3 }}

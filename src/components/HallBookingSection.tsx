@@ -243,6 +243,16 @@ const HallBookingSection = () => {
                     }
                   }, 150);
                 }
+
+                // Scroll to timing section when half day is selected
+                if (nextValue === 'half') {
+                  setTimeout(() => {
+                    const timingSection = document.getElementById('hall-half-timing');
+                    if (timingSection) {
+                      timingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                  }, 150);
+                }
               }}
               className={`glass-card p-8 text-left transition-all cursor-pointer hover:scale-[1.02] ${
                 hallDuration === d.id
@@ -384,7 +394,7 @@ const HallBookingSection = () => {
           )}
 
           {hallDuration === 'half' && (
-            <div className="mt-6 space-y-6">
+            <div id="hall-half-timing" className="mt-6 space-y-6">
               {/* Overlap Detection Alert for Half-Day - Only show if there are blocked times */}
               {bookings.length > 0 && (
               <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4 space-y-3">

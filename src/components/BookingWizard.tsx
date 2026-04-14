@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
 import { sendBookingEmail } from '@/lib/emailService';
+import { uploadPaymentScreenshot } from '@/lib/paymentScreenshotService';
 
 // WhatsApp configuration
 const OWNER_WHATSAPP = import.meta.env.VITE_OWNER_WHATSAPP || '919698678450';
@@ -193,28 +194,68 @@ const BookingWizard = () => {
       toast.error(`❌ Email error: ${error.message}`);
     }
 
+    // 📤 UPLOAD PAYMENT SCREENSHOT TO SUPABASE
+    let screenshotLink = '';
+    try {
+      console.log('📸 Uploading payment screenshot...');
+      const uploadResult = await uploadPaymentScreenshot(
+        store.paymentScreenshot,
+        store.customerName,
+        store.customerPhone
+      );
+
+      if (uploadResult) {
+        screenshotLink = uploadResult.url;
+        console.log('✅ Screenshot uploaded successfully');
+        console.log('🔗 Screenshot link:', screenshotLink);
+        toast.info('✅ Payment screenshot uploaded');
+      } else {
+        console.warn('⚠️ Screenshot upload failed - will proceed without link');
+        toast.warning('⚠️ Could not upload screenshot automatically');
+      }
+    } catch (error) {
+      console.error('❌ Screenshot upload error:', error);
+      toast.error(`⚠️ Screenshot upload failed: ${error.message}`);
+    }
+
     // Send screenshot + details to OWNER's WhatsApp (9698678450)
-    const ownerMsg = (
-      `🏛️ *NEW BOOKING REQUEST*\n\n` +
-      `👤 Customer: ${store.customerName}\n` +
-      `📱 Phone: ${store.customerPhone}\n` +
-      `📧 Email: ${store.customerEmail}\n` +
-      `📅 Date: ${booking.date}\n\n` +
-      `🏛️ Hall: ${hallLabel}\n` +
-      `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
-      `📋 *Services:*\n${selectionsText}\n\n` +
-      `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
-      `🎉 *Discount:* ${formatPrice(discount)}\n` +
-      `💰 *Total:* ${formatPrice(grandTotal)}\n` +
-      `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
-      `🧾 *Txn ID:* ${store.transactionId}\n\n` +
-      `🖼️ *IMPORTANT: Please attach payment screenshot in this chat*`
-    );
+    const ownerMsg = screenshotLink
+      ? (
+          `🏛️ *NEW BOOKING REQUEST*\n\n` +
+          `👤 Customer: ${store.customerName}\n` +
+          `📱 Phone: ${store.customerPhone}\n` +
+          `📧 Email: ${store.customerEmail}\n` +
+          `📅 Date: ${booking.date}\n\n` +
+          `🏛️ Hall: ${hallLabel}\n` +
+          `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
+          `📋 *Services:*\n${selectionsText}\n\n` +
+          `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
+          `🎉 *Discount:* ${formatPrice(discount)}\n` +
+          `💰 *Total:* ${formatPrice(grandTotal)}\n` +
+          `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
+          `🧾 *Txn ID:* ${store.transactionId}\n\n` +
+          `🖼️ *PAYMENT SCREENSHOT:*\n${screenshotLink}`
+        )
+      : (
+          `🏛️ *NEW BOOKING REQUEST*\n\n` +
+          `👤 Customer: ${store.customerName}\n` +
+          `📱 Phone: ${store.customerPhone}\n` +
+          `📧 Email: ${store.customerEmail}\n` +
+          `📅 Date: ${booking.date}\n\n` +
+          `🏛️ Hall: ${hallLabel}\n` +
+          `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
+          `📋 *Services:*\n${selectionsText}\n\n` +
+          `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
+          `🎉 *Discount:* ${formatPrice(discount)}\n` +
+          `💰 *Total:* ${formatPrice(grandTotal)}\n` +
+          `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
+          `🧾 *Txn ID:* ${store.transactionId}\n\n` +
+          `🖼️ *IMPORTANT: Payment screenshot attached manually*`
+        );
 
     // Send booking details to WhatsApp
     try {
       console.log('📱 Sending to WhatsApp number: +91 9698678450');
-      console.log('📸 Screenshot uploaded: ', store.paymentScreenshot?.name);
       
       // Encode message for WhatsApp API
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
@@ -230,10 +271,13 @@ const BookingWizard = () => {
       if (whatsappWindow) {
         console.log('✅ WhatsApp window opened successfully');
         
-        // Show instructions for screenshot
+        // Show success message
         setTimeout(() => {
-          toast.success('✅ WhatsApp opened! Please attach screenshot in the chat.');
-          console.log('📸 User should upload screenshot to WhatsApp chat');
+          if (screenshotLink) {
+            toast.success('✅ WhatsApp opened with screenshot link!');
+          } else {
+            toast.success('✅ WhatsApp opened! Attach screenshot if needed.');
+          }
         }, 1000);
       } else {
         throw new Error('WhatsApp window could not be opened');

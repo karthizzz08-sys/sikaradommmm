@@ -17,6 +17,7 @@ import FloatingTotal from '@/components/FloatingTotal';
 import GoogleMap from '@/components/GoogleMap';
 import Footer from '@/components/Footer';
 import FloatingContactWidget from '@/components/FloatingContactWidget';
+import FloatingMenu from '@/components/FloatingMenu';
 
 const Index = () => {
   return (
@@ -41,6 +42,7 @@ const Index = () => {
       <GoogleMap />
       <Footer />
       <FloatingContactWidget />
+      <FloatingMenu />
     </div>
   );
 };

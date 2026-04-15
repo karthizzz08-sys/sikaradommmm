@@ -1,5 +1,28 @@
 import { supabase } from '@/integrations/supabase/client';
 
+const BUCKET_NAME = 'payment-screenshots';
+
+/**
+ * Ensure the payment-screenshots bucket exists and is public
+ */
+const ensureBucketExists = async (): Promise<boolean> => {
+  try {
+    // Try to list files in bucket to check if it exists
+    const { data, error } = await supabase.storage.from(BUCKET_NAME).list('', { limit: 1 });
+    
+    if (error) {
+      console.warn('⚠️ Bucket does not exist or is private. Error:', error.message);
+      return false;
+    }
+    
+    console.log('✅ Bucket exists and is accessible');
+    return true;
+  } catch (e) {
+    console.warn('⚠️ Error checking bucket:', e);
+    return false;
+  }
+};
+
 /**
  * Upload payment screenshot to Supabase Storage
  * Returns public URL for sharing in WhatsApp
@@ -31,6 +54,12 @@ export const uploadPaymentScreenshot = async (
 
     console.log('✅ File type validated:', file.type);
 
+    // Check if bucket exists
+    const bucketExists = await ensureBucketExists();
+    if (!bucketExists) {
+      console.warn(`⚠️ Bucket '${BUCKET_NAME}' may not be accessible. Proceeding with upload attempt...`);
+    }
+
     // Create unique filename
     const timestamp = Date.now();
     const sanitizedName = customerName.replace(/[^a-zA-Z0-9]/g, '_');
@@ -41,7 +70,7 @@ export const uploadPaymentScreenshot = async (
 
     // Upload to Supabase storage
     const { data, error } = await supabase.storage
-      .from('payment-screenshots')
+      .from(BUCKET_NAME)
       .upload(`bookings/${filename}`, file, {
         cacheControl: '3600',
         upsert: false,
@@ -53,6 +82,12 @@ export const uploadPaymentScreenshot = async (
         status: error.statusCode,
         error: error,
       });
+      
+      // Provide more detailed error information
+      if (error.message.includes('not found') || error.message.includes('404')) {
+        console.error('❌ Bucket does not exist. Please create "payment-screenshots" bucket in Supabase and set it to public.');
+      }
+      
       return null;
     }
 
@@ -64,7 +99,7 @@ export const uploadPaymentScreenshot = async (
 
     // Get public URL
     const { data: publicData } = supabase.storage
-      .from('payment-screenshots')
+      .from(BUCKET_NAME)
       .getPublicUrl(`bookings/${filename}`);
 
     const publicUrl = publicData?.publicUrl;

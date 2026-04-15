@@ -3,7 +3,7 @@ import { hallDurations, additionalCharges, formatPrice, parseTimeToMinutes, form
 import { useBookingStore } from '@/lib/bookingStore';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Info, Zap, Trash2, Flame, PlugZap, AlertCircle } from 'lucide-react';
+import { Info, Zap, Trash2, Flame, PlugZap, AlertCircle, Lock, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useState, useEffect } from 'react';
 import sikaraLogo from '@/assets/sikara-logo.png';
@@ -13,6 +13,7 @@ import { toast } from 'sonner';
 interface BookingSlot {
   start_time: string;
   end_time: string;
+  updated_at?: string;
 }
 
 
@@ -47,6 +48,7 @@ const HallBookingSection = () => {
   const [startAmPm, setStartAmPm] = useState<'AM' | 'PM'>('AM');
   const [endAmPm, setEndAmPm] = useState<'AM' | 'PM'>('PM');
   const [bookings, setBookings] = useState<BookingSlot[]>([]);
+  const [manualTimeMode, setManualTimeMode] = useState(false);
 
   const selectedDateLabel = eventDate ? format(eventDate, 'PPP') : 'Select a date first';
 
@@ -61,7 +63,7 @@ const HallBookingSection = () => {
     const dateStr = format(eventDate!, 'yyyy-MM-dd');
     const { data } = await supabase
       .from('bookings')
-      .select('start_time, end_time')
+      .select('start_time, end_time, updated_at')
       .eq('date', dateStr);
     
     if (data) {
@@ -71,7 +73,7 @@ const HallBookingSection = () => {
     }
   };
 
-  // Check if booking duration overlaps with blocked times
+  // Check if booking duration overlaps with blocked times (with 1-hour buffer after blocked times)
   const checkDurationOverlap = (hour: string, durationHours: number): { conflicts: boolean; conflictingBooking?: BookingSlot; endTime?: string } => {
     const [startH, startM] = hour.split(':').map(Number);
     const startMinutes = startH * 60 + (startM || 0);
@@ -80,13 +82,17 @@ const HallBookingSection = () => {
     const endM = endMinutes % 60;
     const endTimeStr = `${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`;
     
-    // Check if booking duration overlaps with any blocked time
+    // Check if booking duration overlaps with any blocked time (including 1-hour buffer after blocked time)
     const conflictingBooking = bookings.find(booking => {
       const [bookH, bookM] = booking.start_time.split(':').map(Number);
       const [bookEndH, bookEndM] = booking.end_time.split(':').map(Number);
       const bookStart = bookH * 60 + bookM;
-      const bookEnd = bookEndH * 60 + bookEndM;
-      // Check overlap: if booking starts before blocked ends AND booking ends after blocked starts
+      let bookEnd = bookEndH * 60 + bookEndM;
+      
+      // Add 1-hour buffer after blocked time ends
+      bookEnd += 60;
+      
+      // Check overlap: if booking starts before blocked ends (with buffer) AND booking ends after blocked starts
       return startMinutes < bookEnd && endMinutes > bookStart;
     });
     
@@ -162,14 +168,45 @@ const HallBookingSection = () => {
 
   const computeEndTime = (start: string) => formatMinutesToTime(parseTimeToMinutes(start) + 240);
 
+  const preset4HourSlots = [
+    { id: 'morning', start: '10:00', end: '14:00', label: '10:00 AM - 2:00 PM' },
+    { id: 'evening', start: '18:00', end: '22:00', label: '6:00 PM - 10:00 PM' },
+  ];
+
+  const handle4HourPreset = (slot: typeof preset4HourSlots[0]) => {
+    const { conflicts, conflictingBooking } = checkDurationOverlap(slot.start, 4);
+    
+    if (conflicts && conflictingBooking) {
+      toast.error(
+        `❌ This time slot is not available.\n\n` +
+        `Your booking: ${convertTo12Hour(slot.start)} - ${convertTo12Hour(slot.end)}\n` +
+        `Blocked: ${convertTo12Hour(conflictingBooking.start_time)} - ${convertTo12Hour(conflictingBooking.end_time)}\n` +
+        `Please choose another time.`
+      );
+      return;
+    }
+    
+    setHallStartTime(slot.start);
+    setHallEndTime(slot.end);
+    toast.success(`✅ Selected: ${slot.label} (4-hour booking)`);
+    
+    // Scroll to decoration section
+    setTimeout(() => {
+      const decorationSection = document.getElementById('decoration');
+      if (decorationSection) {
+        decorationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
+  };
+
   const handle4HourStart = (value: string) => {
     const { conflicts, conflictingBooking, endTime } = checkDurationOverlap(value, 4);
     
     if (conflicts && conflictingBooking) {
       toast.error(
         `❌ This time slot is not available for 4-hour booking.\n\n` +
-        `Your booking: ${value} - ${endTime}\n` +
-        `Blocked: ${conflictingBooking.start_time} - ${conflictingBooking.end_time}\n` +
+        `Your booking: ${convertTo12Hour(value)} - ${convertTo12Hour(endTime!)}\n` +
+        `Blocked: ${convertTo12Hour(conflictingBooking.start_time)} - ${convertTo12Hour(conflictingBooking.end_time)}\n` +
         `Please choose another time.`
       );
       return;
@@ -177,7 +214,48 @@ const HallBookingSection = () => {
     
     setHallStartTime(value);
     setHallEndTime(computeEndTime(value));
-    toast.success(`✅ Selected: ${value} - ${endTime} (4-hour booking)`);
+    toast.success(`✅ Selected: ${convertTo12Hour(value)} - ${convertTo12Hour(endTime!)} (4-hour booking)`);
+    
+    // Scroll to decoration section
+    setTimeout(() => {
+      const decorationSection = document.getElementById('decoration');
+      if (decorationSection) {
+        decorationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
+  };
+
+  // Check if half-day plan conflicts with blocked times (without buffer)
+  const checkHalfDayConflict = (mode: 'morning' | 'evening'): boolean => {
+    // Special logic for evening plan: if owner update is before 4 PM, show as available (green)
+    if (mode === 'evening') {
+      const latestUpdate = bookings
+        .filter(b => b.updated_at)
+        .map(b => new Date(b.updated_at!))
+        .sort((a, b) => b.getTime() - a.getTime())[0];
+      
+      if (latestUpdate) {
+        const updateHour = latestUpdate.getHours();
+        // If owner update time is before 4 PM (16:00), evening plan is green/available
+        if (updateHour < 16) {
+          return false; // Not conflicting, show as green
+        }
+      }
+    }
+    
+    const timeRange = mode === 'morning' 
+      ? { start: '05:00', end: '16:00' }
+      : { start: '14:00', end: '22:00' };
+
+    const startMinutes = parseTimeToMinutes(timeRange.start);
+    const endMinutes = parseTimeToMinutes(timeRange.end);
+
+    return bookings.some(booking => {
+      const bookStart = parseTimeToMinutes(booking.start_time);
+      const bookEnd = parseTimeToMinutes(booking.end_time);
+      
+      return startMinutes < bookEnd && endMinutes > bookStart;
+    });
   };
 
   const timeBlockMessage = () => {
@@ -302,150 +380,185 @@ const HallBookingSection = () => {
                 </div>
               </div>
 
-              {/* Overlap Detection Information - Only show if there are blocked times */}
-              {bookings.length > 0 && (
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4 space-y-3">
-                <p className="text-xs text-amber-800 dark:text-amber-400">
-                  Non Available Slots:
-                </p>
-
-                {/* Display blocked times */}
-                <div className="bg-white/50 dark:bg-slate-800/50 rounded p-3 space-y-1">
-                  {bookings.map((b, idx) => (
-                    <p key={idx} className="text-xs text-amber-700 dark:text-amber-300">
-                      🔒 <strong>{convertTo12Hour(b.start_time)} – {convertTo12Hour(b.end_time)}</strong>
-                    </p>
-                  ))}
+              {/* Preset Time Slots */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold text-foreground">4-Hour Plan - Preset Options</label>
+                <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
+                  {preset4HourSlots.map((slot) => {
+                    const { conflicts } = checkDurationOverlap(slot.start, 4);
+                    const isSelected = hallStartTime === slot.start && hallEndTime === slot.end;
+                    const isAvailable = !conflicts;
+                    
+                    return (
+                      <motion.button
+                        key={slot.id}
+                        onClick={() => handle4HourPreset(slot)}
+                        disabled={!isAvailable}
+                        whileHover={isAvailable ? { scale: 1.02 } : {}}
+                        whileTap={isAvailable ? { scale: 0.98 } : {}}
+                        initial={!isAvailable ? { opacity: 0.8 } : { opacity: 1 }}
+                        animate={!isAvailable ? { opacity: [0.8, 1, 0.8], transition: { duration: 2, repeat: Infinity } } : { opacity: 1 }}
+                        className={`p-4 rounded-xl border-2 transition-all relative overflow-hidden ${
+                          isSelected
+                            ? 'border-green-500 bg-green-50 dark:bg-green-900/30 shadow-md'
+                            : isAvailable
+                            ? 'border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10 hover:border-green-500 hover:shadow-md cursor-pointer'
+                            : 'border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20 cursor-not-allowed'
+                        }`}
+                      >
+                        {!isAvailable && (
+                          <motion.div 
+                            className="absolute inset-0 bg-gradient-to-r from-red-200 to-transparent dark:from-red-700 opacity-30 pointer-events-none"
+                            animate={{ backgroundPosition: ['0% 0%', '100% 0%'] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                          />
+                        )}
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="text-left">
+                            <div className="flex items-center gap-2">
+                              <p className="font-semibold text-foreground">{slot.label}</p>
+                              {isAvailable ? (
+                                <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                                  <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                                </motion.div>
+                              ) : (
+                                <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                                  <Lock className="w-4 h-4 text-red-600 dark:text-red-400" />
+                                </motion.div>
+                              )}
+                            </div>
+                            <p className={`text-xs mt-1 ${
+                              isAvailable 
+                                ? 'text-green-700 dark:text-green-300' 
+                                : 'text-red-700 dark:text-red-300'
+                            }`}>
+                              {isAvailable ? '✓ Available' : '🔒 Unavailable'}
+                            </p>
+                          </div>
+                        </div>
+                      </motion.button>
+                    );
+                  })}
                 </div>
-
-                <p className="text-xs text-amber-800 dark:text-amber-400 font-semibold mt-2">Your 4-hour booking will be validated against these non available slots.</p>
               </div>
-              )}
-              <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-foreground">4-Hour Start Time</label>
-                <div className="flex gap-2 items-end">
-                  <div className="flex-1 rounded-xl border border-border/70 bg-muted px-4 py-3">
-                    <p className="text-sm text-muted-foreground">Selected Start</p>
-                    <p className="text-lg font-semibold text-foreground">{hallStartTime ? convertTo12Hour(hallStartTime) : '--:-- AM'}</p>
+
+              {/* Manual Time Selection */}
+              <div className="border-t border-border/70 pt-4">
+                <button
+                  onClick={() => setManualTimeMode(!manualTimeMode)}
+                  className="text-sm font-semibold text-primary hover:text-primary/80 transition flex items-center gap-2"
+                >
+                  <span className={`transition-transform ${manualTimeMode ? 'rotate-90' : ''}`}>▶</span>
+                  {manualTimeMode ? 'Hide Manual Time Selection' : 'Select Time Manually'}
+                </button>
+
+                {manualTimeMode && (
+                  <div className="mt-4 space-y-4">
+                    <div className="flex flex-col gap-2">
+                      <label className="text-sm font-semibold text-foreground">Choose Start Time</label>
+                      <input
+                        type="time"
+                        value={hallStartTime}
+                        onChange={(e) => handle4HourStart(e.target.value)}
+                        min="05:00"
+                        max="22:00"
+                        className="w-full rounded-xl border border-border/70 bg-background px-4 py-3 text-sm outline-none focus:border-primary"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">Select a start time between 5:00 AM and 10:00 PM</p>
+                    </div>
+
+                    {hallStartTime && (
+                      <div className="rounded-3xl border border-border/70 bg-accent/30 p-4">
+                        <p className="text-sm text-muted-foreground">Auto-Calculated End Time</p>
+                        <div className="mt-3">
+                          <p className="text-2xl font-bold text-primary">{hallEndTime ? convertTo12Hour(hallEndTime) : '--:-- PM'}</p>
+                          <p className="text-xs text-muted-foreground mt-1">(+4 hours from start)</p>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <input
-                    type="time"
-                    value={hallStartTime}
-                    onChange={(e) => handle4HourStart(e.target.value)}
-                    min="05:00"
-                    max="22:00"
-                    className="hidden"
-                  />
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setStartAmPm('AM')}
-                      className={`px-3 py-3 rounded-lg font-semibold text-sm transition ${
-                        startAmPm === 'AM'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground border border-border'
-                      }`}
-                    >
-                      AM
-                    </button>
-                    <button
-                      onClick={() => setStartAmPm('PM')}
-                      className={`px-3 py-3 rounded-lg font-semibold text-sm transition ${
-                        startAmPm === 'PM'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-muted text-muted-foreground border border-border'
-                      }`}
-                    >
-                      PM
-                    </button>
-                  </div>
-                </div>
-                <input
-                  type="time"
-                  value={hallStartTime}
-                  onChange={(e) => handle4HourStart(e.target.value)}
-                  min="05:00"
-                  max="22:00"
-                  className="mt-2 w-full rounded-xl border border-border/70 bg-background px-4 py-3 text-sm outline-none focus:border-primary"
-                />
-              </div>
-              
-              <div className="rounded-3xl border border-border/70 bg-accent/30 p-4">
-                <p className="text-sm text-muted-foreground">Auto-Calculated End Time</p>
-                <div className="mt-2 flex gap-2 items-center justify-between">
-                  <div className="flex-1">
-                    <p className="text-2xl font-bold text-primary">{hallEndTime ? convertTo12Hour(hallEndTime) : '--:-- PM'}</p>
-                    <p className="text-xs text-muted-foreground mt-1">(+4 hours from start)</p>
-                  </div>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setEndAmPm('AM')}
-                      className={`px-3 py-2 rounded font-semibold text-sm transition ${
-                        endAmPm === 'AM'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-background text-muted-foreground border border-border'
-                      }`}
-                    >
-                      AM
-                    </button>
-                    <button
-                      onClick={() => setEndAmPm('PM')}
-                      className={`px-3 py-2 rounded font-semibold text-sm transition ${
-                        endAmPm === 'PM'
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-background text-muted-foreground border border-border'
-                      }`}
-                    >
-                      PM
-                    </button>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           )}
 
           {hallDuration === 'half' && (
             <div id="hall-half-timing" className="mt-6 space-y-6">
-              {/* Overlap Detection Alert for Half-Day - Only show if there are blocked times */}
-              {bookings.length > 0 && (
-              <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 border border-amber-200 dark:border-amber-700/50 rounded-lg p-4 space-y-3">
-                <p className="text-xs text-amber-800 dark:text-amber-400">
-                  Non Available Slots:
-                </p>
-
-                {/* Display non available slots */}
-                <div className="bg-white/50 dark:bg-slate-800/50 rounded p-3 space-y-1">
-                  {bookings.map((b, idx) => (
-                    <p key={idx} className="text-xs text-amber-700 dark:text-amber-300">
-                      🔒 <strong>{convertTo12Hour(b.start_time)} – {convertTo12Hour(b.end_time)}</strong>
-                    </p>
-                  ))}
-                </div>
-
-                <p className="text-xs text-amber-800 dark:text-amber-400">
-                  ⚠️ Half-day bookings cannot be selected if there are any non available slots during the selected half-day period (Morning: 5:00 AM–4:00 PM or Evening: 2:00 PM–10:00 PM).
-                </p>
-              </div>
-              )}
-
               <div className="grid gap-4 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => setHallHalfMode('morning')}
-                  className={`rounded-3xl border p-4 text-left transition ${hallHalfMode === 'morning' ? 'border-primary bg-accent' : 'border-border/70 bg-background'}`}
-                >
-                  <p className="font-semibold text-foreground">Morning Half</p>
-                  <p className="text-sm text-muted-foreground mt-1">05:00 AM – 04:00 PM</p>
-                  <p className="text-xs text-muted-foreground mt-2">Includes: Tiffin + Lunch</p>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setHallHalfMode('evening')}
-                  className={`rounded-3xl border p-4 text-left transition ${hallHalfMode === 'evening' ? 'border-primary bg-accent' : 'border-border/70 bg-background'}`}
-                >
-                  <p className="font-semibold text-foreground">Evening Half</p>
-                  <p className="text-sm text-muted-foreground mt-1">02:00 PM – 10:00 PM</p>
-                  <p className="text-xs text-muted-foreground mt-2">Includes: Lunch + Dinner</p>
-                </button>
+                {[
+                  { id: 'morning', label: 'Morning Half', time: '05:00 AM – 04:00 PM', description: 'Tiffin + Lunch' },
+                  { id: 'evening', label: 'Evening Half', time: '02:00 PM – 10:00 PM', description: 'Lunch + Dinner' }
+                ].map((half) => {
+                  const isConflict = checkHalfDayConflict(half.id as 'morning' | 'evening');
+                  const isSelected = hallHalfMode === half.id;
+                  const isAvailable = !isConflict;
+
+                  return (
+                    <motion.button
+                      key={half.id}
+                      type="button"
+                      onClick={() => {
+                        if (isAvailable) {
+                          setHallHalfMode(half.id as 'morning' | 'evening');
+                          toast.success(`✅ Selected: ${half.label}`);
+                          
+                          // Scroll to decoration section
+                          setTimeout(() => {
+                            const decorationSection = document.getElementById('decoration');
+                            if (decorationSection) {
+                              decorationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                          }, 300);
+                        }
+                      }}
+                      disabled={!isAvailable}
+                      whileHover={isAvailable ? { scale: 1.02 } : {}}
+                      whileTap={isAvailable ? { scale: 0.98 } : {}}
+                      initial={!isAvailable ? { opacity: 0.8 } : { opacity: 1 }}
+                      animate={!isAvailable ? { opacity: [0.8, 1, 0.8], transition: { duration: 2, repeat: Infinity } } : { opacity: 1 }}
+                      className={`rounded-3xl border p-4 text-left transition relative overflow-hidden ${
+                        isSelected
+                          ? 'border-green-500 bg-green-50 dark:bg-green-900/30 shadow-md'
+                          : isAvailable
+                          ? 'border-green-300 dark:border-green-600 bg-green-50/50 dark:bg-green-900/10 hover:border-green-500 hover:shadow-md cursor-pointer'
+                          : 'border-red-400 dark:border-red-600 bg-red-50 dark:bg-red-900/20 cursor-not-allowed'
+                      }`}
+                    >
+                      {!isAvailable && (
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-red-200 to-transparent dark:from-red-700 opacity-30 pointer-events-none"
+                          animate={{ backgroundPosition: ['0% 0%', '100% 0%'] }}
+                          transition={{ duration: 3, repeat: Infinity }}
+                        />
+                      )}
+                      <div className="flex items-center justify-between relative z-10">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className={`font-semibold ${isAvailable ? 'text-foreground' : 'text-red-600 dark:text-red-400'}`}>{half.label}</p>
+                            {isAvailable ? (
+                              <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ duration: 2, repeat: Infinity }}>
+                                <CheckCircle className="w-4 h-4 text-green-600 dark:text-green-400" />
+                              </motion.div>
+                            ) : (
+                              <motion.div animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                                <Lock className="w-4 h-4 text-red-600 dark:text-red-400" />
+                              </motion.div>
+                            )}
+                          </div>
+                          <p className={`text-sm mt-1 ${isAvailable ? 'text-muted-foreground' : 'text-red-600 dark:text-red-400'}`}>{half.time}</p>
+                          <p className={`text-xs mt-2 ${isAvailable ? 'text-muted-foreground' : 'text-red-600 dark:text-red-400'}`}>Includes: {half.description}</p>
+                          <p className={`text-xs mt-2 font-semibold ${
+                            isAvailable 
+                              ? 'text-green-700 dark:text-green-300' 
+                              : 'text-red-700 dark:text-red-300'
+                          }`}>
+                            {isAvailable ? '✓ Available' : '🔒 Unavailable'}
+                          </p>
+                        </div>
+                      </div>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
           )}

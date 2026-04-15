@@ -28,8 +28,8 @@ const Index = () => {
       <HeroSection />
       <AvailabilityChecker />
       <HallBookingSection />
-      <PhotographySection />
       <DecorationSection />
+      <PhotographySection />
       <SalonSection />
       <CateringSection />
       <EventDetailSection />

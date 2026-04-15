@@ -21,6 +21,7 @@
     const [selectedHour, setSelectedHour] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [bookedDates, setBookedDates] = useState<Date[]>([]);
+    const [oldUpdatedDates, setOldUpdatedDates] = useState<Date[]>([]);
     const store = useBookingStore();
 
     // Fetch all booked dates for calendar coloring
@@ -29,9 +30,49 @@
     }, []);
 
     const fetchAllBookedDates = async () => {
-      const { data } = await supabase.from('bookings').select('date');
+      const { data } = await supabase.from('bookings').select('date, updated_at, start_time, end_time');
       if (data) {
-        setBookedDates(data.map(d => new Date(d.date + 'T00:00:00')));
+        const recentlyUpdatedDates: Date[] = [];
+        const redUpdateDates: Date[] = [];
+        
+        // Group bookings by date and calculate total blocked hours
+        const dateMap = new Map<string, Array<{start_time: string, end_time: string}>>();
+        
+        data.forEach(booking => {
+          const dateStr = booking.date;
+          if (!dateMap.has(dateStr)) {
+            dateMap.set(dateStr, []);
+          }
+          dateMap.get(dateStr)!.push({start_time: booking.start_time, end_time: booking.end_time});
+        });
+        
+        // Check total blocked hours for each date
+        dateMap.forEach((bookings, dateStr) => {
+          const bookingDate = new Date(dateStr + 'T00:00:00');
+          
+          // Calculate total blocked hours
+          let totalBlockedMinutes = 0;
+          bookings.forEach(booking => {
+            const [startH, startM] = booking.start_time.split(':').map(Number);
+            const [endH, endM] = booking.end_time.split(':').map(Number);
+            const startMinutes = startH * 60 + startM;
+            const endMinutes = endH * 60 + endM;
+            totalBlockedMinutes += (endMinutes - startMinutes);
+          });
+          
+          const totalBlockedHours = totalBlockedMinutes / 60;
+          
+          // If total blocked hours >= 18, mark as red
+          if (totalBlockedHours >= 18) {
+            redUpdateDates.push(bookingDate);
+          } else {
+            // Otherwise violet (normal update)
+            recentlyUpdatedDates.push(bookingDate);
+          }
+        });
+        
+        setBookedDates(recentlyUpdatedDates);
+        setOldUpdatedDates(redUpdateDates);
       }
     };
 
@@ -160,30 +201,35 @@
                   if (date) {
                     store.setEventDate(date);
                     toast.success(`📅 Date selected: ${format(date, 'PPP')}`);
+                    // Scroll to hall booking section
+                    setTimeout(() => {
+                      const hallSection = document.getElementById('hall');
+                      if (hallSection) {
+                        hallSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                      }
+                    }, 300);
                   }
                 }}
                 disabled={(date) => date < new Date()}
                 className="p-3 pointer-events-auto"
                 modifiers={{
-                  booked: bookedDates,
+                  ownerUpdatedOld: oldUpdatedDates,
+                  booked: bookedDates.filter(bd => !oldUpdatedDates.some(od => od.toDateString() === bd.toDateString())),
                   selectedAvailable: store.eventDate && !bookedDates.some(bd => bd.toDateString() === store.eventDate!.toDateString()) ? [store.eventDate] : []
                 }}
                 modifiersStyles={{
+                  ownerUpdatedOld: { backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold', border: '2px solid #dc2626' },
                   booked: { backgroundColor: '#a78bfa', color: '#fff', fontWeight: 'bold' },
                   selectedAvailable: { backgroundColor: '#10b981', color: '#fff', fontWeight: 'bold', border: '3px solid #059669' },
                 }}
               />
               <div className="flex gap-4 mt-6 text-xs justify-center items-center flex-wrap">
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
-                  <span className="w-3 h-3 rounded bg-gray-400 border border-gray-500" />
-                  <span className="text-foreground font-medium">Available</span>
-                </div>
-                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/50">
-                  <span className="w-3 h-3 rounded bg-green-500 border border-green-600" />
-                  <span className="text-foreground font-medium">Selected</span>
-                </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
                   <span className="w-3 h-3 rounded" style={{ backgroundColor: '#a78bfa', borderColor: '#a78bfa' }}></span>
+                  <span className="text-foreground font-medium">Partially booked</span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#ef4444', borderColor: '#dc2626' }}></span>
                   <span className="text-foreground font-medium">Booked</span>
                 </div>
               </div>
@@ -205,120 +251,6 @@
             </div>
             </motion.div>
 
-            {/* Available times - Only show for violet (booked) dates */}
-            {store.eventDate && isSelectedDateBooked && (
-              <motion.div
-                data-availability-slots
-                id="availability-slots"
-                initial={{ opacity: 0, x: 20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-full md:flex-1 md:max-w-2xl bg-white dark:bg-slate-900 rounded-2xl shadow-lg p-8 border border-slate-200 dark:border-slate-700 flex flex-col justify-start"
-              >
-                <div className="mb-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800">
-                      <Clock className="w-5 h-5 text-blue-600 dark:text-blue-300" />
-                    </div>
-                    <h3 className="font-bold text-lg text-foreground">
-                      Available Time Slots
-                    </h3>
-                  </div>
-                  {loading ? (
-                    <div className="text-muted-foreground text-sm">Loading...</div>
-                  ) : (
-                    <>
-                      {/* Combined Time Slots Box */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="mb-6 p-6 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md"
-                      >
-                        {/* Non Available Slots */}
-                        {bookings.length > 0 && (
-                          <div className="mb-6">
-                            <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">❌ Non Available Slots:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {bookings.map((b, idx) => (
-                                <button
-                                  key={idx}
-                                  disabled
-                                  className="px-4 py-2 rounded-lg bg-red-100 dark:bg-red-900/30 text-xs font-medium text-red-700 dark:text-red-300 border-2 border-red-200 dark:border-red-700/50 cursor-not-allowed opacity-60 transition-all duration-200"
-                                >
-                                  {formatTimeToAmPm(b.start_time)} – {formatTimeToAmPm(b.end_time)}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Available time ranges */}
-                        {availableSlots.length > 0 && (
-                          <div>
-                            <p className="font-semibold text-slate-700 dark:text-slate-300 text-sm mb-3">✅ Available Ranges:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {availableSlots.map((slot, idx) => (
-                                <button
-                                  key={idx}
-                                  onClick={() => {
-                                    const el = document.getElementById('hall');
-                                    if (el) el.scrollIntoView({ behavior: 'smooth' });
-                                  }}
-                                  className="px-4 py-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-xs font-medium text-green-700 dark:text-green-300 border-2 border-green-200 dark:border-green-700/50 hover:bg-green-200 dark:hover:bg-green-900/50 hover:border-green-400 dark:hover:border-green-600 transition-all duration-200 cursor-pointer active:scale-95"
-                                >
-                                  {formatTimeToAmPm(slot.start)} – {formatTimeToAmPm(slot.end)}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </motion.div>
-
-                      {/* Hourly grid - All 24 hours with booking status */}
-                      <div className="mt-6">
-                        <div className="mb-4">
-                          <p className="text-xs text-muted-foreground">Showing all 24 hours (12:00 AM–11:59 PM) for {format(store.eventDate!, 'MMMM d, yyyy')}</p>
-                        </div>
-                        <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
-                          {getHourlyDisplay().map((slot, idx) => (
-                            <motion.button
-                              key={idx}
-                              whileHover={slot.available ? { scale: 1.12, y: -3 } : {}}
-                              whileTap={slot.available ? { scale: 0.95 } : {}}
-                              onClick={() => slot.available && handleSelectHour(slot.hour)}
-                              disabled={!slot.available}
-                              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-                              title={slot.available ? `Available: ${formatTimeToAmPm(slot.hour)}` : `Booked: ${formatTimeToAmPm(slot.hour)}`}
-                              className={`py-2 px-2 rounded-lg font-bold transition-all duration-200 flex items-center justify-center gap-0.5 text-xs ${
-                                slot.available
-                                  ? 'bg-gradient-to-br from-emerald-100 to-green-100 dark:from-emerald-900/40 dark:to-green-900/40 text-emerald-700 dark:text-emerald-300 hover:shadow-md hover:from-emerald-200 hover:to-green-200 dark:hover:from-emerald-900/60 dark:hover:to-green-900/60 cursor-pointer border border-emerald-200 dark:border-emerald-700/50'
-                                  : 'bg-gradient-to-br from-rose-200 to-red-200 dark:from-rose-900/50 dark:to-red-900/50 text-rose-600 dark:text-rose-300 cursor-not-allowed opacity-60 border border-rose-300 dark:border-rose-700/50'
-                              }`}
-                            >
-                              {!slot.available && <Lock className="w-3 h-3" />}
-                              {formatTimeToAmPm(slot.hour)}
-                            </motion.button>
-                          ))}
-                        </div>
-
-                        {/* Legend */}
-                        <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-4 text-xs">
-                          <div className="flex items-center gap-2">
-                            <div className="w-4 h-4 rounded bg-gradient-to-br from-emerald-100 to-green-100 border border-emerald-200"></div>
-                            <span className="text-foreground">Available</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Lock className="w-4 h-4 text-rose-600 dark:text-rose-300" />
-                            <span className="text-foreground">Booked/Unavailable</span>
-                          </div>
-                        </div>
-                      </div>
-                  </>
-                )}
-                </div>
-            </motion.div>
-            )}
           </div>
         </div>
       </section>

@@ -619,11 +619,6 @@ const BookingWizard = () => {
                   <p className="text-sm text-muted-foreground mt-3">Scan to pay via any UPI app</p>
                   <p className="text-xs text-muted-foreground mt-1">UPI ID: s.karthikkumar2008-3@okhdfcbank</p>
                 </div>
-                
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/50 rounded-lg p-4">
-                  <p className="text-sm text-blue-800 dark:text-blue-300"><strong>📸 Important:</strong> Screenshot will be automatically uploaded and shared with the owner via WhatsApp link for verification.</p>
-                </div>
-                
                 <div>
                   <label className="text-sm font-semibold text-foreground">Upload Payment Screenshot *</label>
                   <label className={`mt-2 flex items-center gap-3 p-4 rounded-lg border-2 border-dashed cursor-pointer transition-colors ${

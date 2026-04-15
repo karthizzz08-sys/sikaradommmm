@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useEffect } from 'react';
 import { useBookingStore } from '@/lib/bookingStore';
+import { supabase } from '@/integrations/supabase/client';
 import {
   hallDurations, photoPackages, decorationItems, eventItems,
   salonPackages, mensGroomingPackages, cateringPackages, cateringAddOns, formatPrice, timeIntervalsOverlap,
@@ -8,6 +10,7 @@ import {
 } from '@/lib/bookingData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2, Mail } from 'lucide-react';
 import { toast } from 'sonner';
@@ -23,7 +26,20 @@ const OWNER_WHATSAPP_LINK = `https://wa.me/${OWNER_WHATSAPP}`;
 const BookingWizard = () => {
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookedDates, setBookedDates] = useState<Date[]>([]);
   const store = useBookingStore();
+
+  // Fetch all booked dates for calendar coloring
+  useEffect(() => {
+    fetchAllBookedDates();
+  }, []);
+
+  const fetchAllBookedDates = async () => {
+    const { data } = await supabase.from('bookings').select('date');
+    if (data) {
+      setBookedDates(data.map(d => new Date(d.date + 'T00:00:00')));
+    }
+  };
 
   const hallPrice = store.hallDuration
     ? hallDurations.find(d => d.id === store.hallDuration)?.price ?? 0
@@ -554,8 +570,39 @@ const BookingWizard = () => {
                   </div>
                 )}
                 {!store.eventDate && (
-                  <div className="p-4 bg-destructive/10 rounded-lg">
-                    <p className="text-sm font-semibold text-destructive">⚠️ Please select a date from the Availability Checker above</p>
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold text-foreground">Select Event Date *</label>
+                    <div className="p-4 bg-accent/20 rounded-lg border border-primary/20 flex justify-center">
+                      <Calendar
+                        mode="single"
+                        selected={store.eventDate || undefined}
+                        onSelect={(date) => {
+                          if (date) {
+                            store.setEventDate(date);
+                            toast.success(`📅 Date selected: ${format(date, 'PPP')}`);
+                          }
+                        }}
+                        disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                        className="rounded-lg"
+                        modifiers={{
+                          booked: bookedDates,
+                        }}
+                        modifiersStyles={{
+                          booked: { backgroundColor: '#a78bfa', color: '#fff', fontWeight: 'bold' },
+                        }}
+                      />
+                    </div>
+                    <div className="flex gap-4 mt-3 text-xs justify-center items-center flex-wrap">
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600">
+                        <span className="w-3 h-3 rounded bg-gray-400 border border-gray-500" />
+                        <span className="text-foreground font-medium">Available</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700/50">
+                        <span className="w-3 h-3 rounded" style={{ backgroundColor: '#a78bfa', borderColor: '#a78bfa' }}></span>
+                        <span className="text-foreground font-medium">Booked</span>
+                      </div>
+                    </div>
+                    <p className="text-xs text-muted-foreground text-center">👉 Pick a date from calendar to proceed</p>
                   </div>
                 )}
               </div>

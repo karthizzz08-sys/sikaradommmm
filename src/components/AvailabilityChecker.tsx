@@ -16,7 +16,6 @@
   }
 
   const AvailabilityChecker = () => {
-    const [selected, setSelected] = useState<Date | undefined>();
     const [bookings, setBookings] = useState<BookingSlot[]>([]);
     const [availableSlots, setAvailableSlots] = useState<Array<{ start: string; end: string }>>([]);
     const [selectedHour, setSelectedHour] = useState<string | null>(null);
@@ -38,14 +37,14 @@
 
     // Fetch bookings for selected date
     useEffect(() => {
-      if (selected) {
+      if (store.eventDate) {
         fetchBookingsForDate();
       }
-    }, [selected]);
+    }, [store.eventDate]);
 
     const fetchBookingsForDate = async () => {
       setLoading(true);
-      const dateStr = format(selected!, 'yyyy-MM-dd');
+      const dateStr = format(store.eventDate!, 'yyyy-MM-dd');
       const { data } = await supabase
         .from('bookings')
         .select('start_time, end_time')
@@ -106,20 +105,19 @@
 
     const handleSelectHour = (hour: string) => {
       setSelectedHour(hour);
-      store.setEventDate(selected!);
       // Scroll to booking section
       const el = document.getElementById('hall');
       if (el) el.scrollIntoView({ behavior: 'smooth' });
     };
 
     // Check if selected date is a booked date (violet)
-    const isSelectedDateBooked = selected
-      ? bookedDates.some(d => d.toDateString() === selected.toDateString())
+    const isSelectedDateBooked = store.eventDate
+      ? bookedDates.some(d => d.toDateString() === store.eventDate!.toDateString())
       : false;
 
     // Auto-scroll to availability slots when a booked date is selected
     useEffect(() => {
-      if (selected && isSelectedDateBooked) {
+      if (store.eventDate && isSelectedDateBooked) {
         setTimeout(() => {
           const el = document.querySelector('[data-availability-slots]');
           if (el) {
@@ -127,7 +125,7 @@
           }
         }, 400);
       }
-    }, [selected, isSelectedDateBooked]);
+    }, [store.eventDate, isSelectedDateBooked]);
 
     return (
       <section id="availability" className="min-h-screen w-full flex flex-col items-center justify-center py-8 md:py-12 px-4">
@@ -157,13 +155,18 @@
               <h3 className="font-bold text-lg text-foreground mb-6 text-center">📅 Select Date</h3>
               <Calendar
                 mode="single"
-                selected={selected}
-                onSelect={setSelected}
+                selected={store.eventDate || undefined}
+                onSelect={(date) => {
+                  if (date) {
+                    store.setEventDate(date);
+                    toast.success(`📅 Date selected: ${format(date, 'PPP')}`);
+                  }
+                }}
                 disabled={(date) => date < new Date()}
                 className="p-3 pointer-events-auto"
                 modifiers={{
                   booked: bookedDates,
-                  selectedAvailable: selected && !bookedDates.some(bd => bd.toDateString() === selected.toDateString()) ? [selected] : []
+                  selectedAvailable: store.eventDate && !bookedDates.some(bd => bd.toDateString() === store.eventDate!.toDateString()) ? [store.eventDate] : []
                 }}
                 modifiersStyles={{
                   booked: { backgroundColor: '#a78bfa', color: '#fff', fontWeight: 'bold' },
@@ -186,11 +189,10 @@
               </div>
 
               {/* Show quick selection button only for non-booked (available) dates */}
-              {selected && !isSelectedDateBooked && (
+              {store.eventDate && !isSelectedDateBooked && (
                 <div id="select-date-button">
                   <Button
                     onClick={() => {
-                      store.setEventDate(selected);
                       const el = document.getElementById('hall');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
                     }}
@@ -204,7 +206,7 @@
             </motion.div>
 
             {/* Available times - Only show for violet (booked) dates */}
-            {selected && isSelectedDateBooked && (
+            {store.eventDate && isSelectedDateBooked && (
               <motion.div
                 data-availability-slots
                 id="availability-slots"
@@ -260,7 +262,6 @@
                                 <button
                                   key={idx}
                                   onClick={() => {
-                                    store.setEventDate(selected!);
                                     const el = document.getElementById('hall');
                                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                                   }}
@@ -277,7 +278,7 @@
                       {/* Hourly grid - All 24 hours with booking status */}
                       <div className="mt-6">
                         <div className="mb-4">
-                          <p className="text-xs text-muted-foreground">Showing all 24 hours (12:00 AM–11:59 PM) for {format(selected, 'MMMM d, yyyy')}</p>
+                          <p className="text-xs text-muted-foreground">Showing all 24 hours (12:00 AM–11:59 PM) for {format(store.eventDate!, 'MMMM d, yyyy')}</p>
                         </div>
                         <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
                           {getHourlyDisplay().map((slot, idx) => (

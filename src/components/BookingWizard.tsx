@@ -254,7 +254,7 @@ const BookingWizard = () => {
     // Create messages for both OWNER and CUSTOMER
     const servicesCount = getSelectionSummary().length;
     
-    // Message to OWNER
+    // Message to OWNER - with detailed services
     const ownerMsg = 
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -262,7 +262,7 @@ const BookingWizard = () => {
       `📧 Email: ${store.customerEmail}\n` +
       `📅 Date: ${booking.date}\n` +
       `⏰ Hall: ${hallLabel} (${hallStartLabel} - ${hallEndLabel})\n\n` +
-      `📋 Services Selected: ${servicesCount}\n` +
+      `📋 *Services Selected:*\n${selectionsText}\n\n` +
       `💰 Advance Amount: ${formatPrice(advanceAmount)}\n` +
       `💰 Total Amount: ${formatPrice(grandTotal)}\n` +
       `🧾 Txn ID: ${store.transactionId || 'Not provided'}\n` +
@@ -282,47 +282,37 @@ const BookingWizard = () => {
       `💰 Advance Amount: ${formatPrice(advanceAmount)}\n` +
       `💰 Total Amount: ${formatPrice(grandTotal)}\n` +
       `🧾 Booking ID: ${booking.id}\n\n` +
-      `✅ We will contact you soon to confirm the final details.\n` +
-      `For any queries, contact us at +91 9698678450`;
+      `✅ We will contact you soon to confirm.\n` +
+      `For queries: +91 9698678450`;
 
     // Send messages to WhatsApp
     try {
-      console.log('📱 Sending WhatsApp messages...');
+      console.log('📱 Opening Owner WhatsApp...');
       
-      // Encode messages
+      // Encode message for URL
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
-      const customerMsgEncoded = encodeURIComponent(customerMsg);
       
-      // WhatsApp URLs
-      const ownerWhatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
-      const customerWhatsappUrl = `https://wa.me/${store.customerPhone.replace(/\D/g, '')}?text=${customerMsgEncoded}`;
+      // Owner phone number
+      const ownerPhone = '919698678450';
       
-      console.log('🔗 Owner Message length:', ownerMsg.length);
-      console.log('🔗 Customer Message length:', customerMsg.length);
+      // Use whatsapp:// protocol to open app directly (not web)
+      const ownerWhatsappUrl = `whatsapp://send?phone=${ownerPhone}&text=${ownerMsgEncoded}`;
+      
+      console.log('🔗 Owner Phone:', ownerPhone);
+      console.log('📱 Using WhatsApp protocol to open app directly');
       
       // Show success message
-      toast.success('✅ Opening WhatsApp chats...');
+      toast.success('✅ Opening Owner WhatsApp...');
       
-      // Open customer message first, then owner
+      // Open owner WhatsApp chat directly
       setTimeout(() => {
-        // Send to customer
-        const customerWindow = window.open(customerWhatsappUrl, '_blank');
-        console.log('📱 Customer chat window:', customerWindow ? 'opened' : 'blocked');
-        
-        // Send to owner after a brief delay
-        setTimeout(() => {
-          const ownerWindow = window.open(ownerWhatsappUrl, '_blank');
-          if (!ownerWindow || ownerWindow.closed) {
-            console.log('📱 Popup might be blocked, using direct navigation for owner...');
-            window.location.href = ownerWhatsappUrl;
-          }
-          console.log('📱 Owner chat window:', ownerWindow ? 'opened' : 'navigating');
-        }, 800);
+        console.log('📱 Navigating to owner WhatsApp...');
+        window.location.href = ownerWhatsappUrl;
       }, 300);
       
     } catch (error) {
       console.error('❌ Error opening WhatsApp:', error);
-      toast.error('⚠️ Unable to open WhatsApp. Please try again.');
+      toast.error('⚠️ Unable to open WhatsApp. Please ensure WhatsApp is installed.');
       setIsSubmitting(false);
       return;
     }

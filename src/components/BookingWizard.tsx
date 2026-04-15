@@ -252,88 +252,73 @@ const BookingWizard = () => {
     }
 
     // Send screenshot + details to OWNER's WhatsApp (9698678450)
-    const ownerMsg = screenshotLink
-      ? (
-          `🏛️ *NEW BOOKING REQUEST*\n\n` +
-          `👤 Customer: ${store.customerName}\n` +
-          `📱 Phone: ${store.customerPhone}\n` +
-          `📧 Email: ${store.customerEmail}\n` +
-          `📅 Date: ${booking.date}\n\n` +
-          `🏛️ Hall: ${hallLabel}\n` +
-          `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
-          `📋 *Services:*\n${selectionsText}\n\n` +
-          `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
-          `🎉 *Discount:* ${formatPrice(discount)}\n` +
-          `💰 *Total:* ${formatPrice(grandTotal)}\n` +
-          `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
-          `🧾 *Txn ID:* ${store.transactionId}\n\n` +
-          `🖼️ *PAYMENT SCREENSHOT:*\n${screenshotLink}`
-        )
-      : (
-          `🏛️ *NEW BOOKING REQUEST*\n\n` +
-          `👤 Customer: ${store.customerName}\n` +
-          `📱 Phone: ${store.customerPhone}\n` +
-          `📧 Email: ${store.customerEmail}\n` +
-          `📅 Date: ${booking.date}\n\n` +
-          `🏛️ Hall: ${hallLabel}\n` +
-          `⏰ Timing: ${hallStartLabel} - ${hallEndLabel}\n\n` +
-          `📋 *Services:*\n${selectionsText}\n\n` +
-          `💰 *Subtotal:* ${formatPrice(subtotal)}\n` +
-          `🎉 *Discount:* ${formatPrice(discount)}\n` +
-          `💰 *Total:* ${formatPrice(grandTotal)}\n` +
-          `💳 *Advance:* ${formatPrice(advanceAmount)}\n` +
-          `🧾 *Txn ID:* ${store.transactionId}\n\n` +
-          `🖼️ *IMPORTANT: Payment screenshot attached manually*`
-        );
+    // Create a concise message (URLs have character limits)
+    const servicesCount = getSelectionSummary().length;
+    const ownerMsg = 
+      `🏛️ *NEW BOOKING REQUEST*\n\n` +
+      `👤 Customer: ${store.customerName}\n` +
+      `📱 Phone: ${store.customerPhone}\n` +
+      `📧 Email: ${store.customerEmail}\n` +
+      `📅 Date: ${booking.date}\n` +
+      `⏰ Hall: ${hallLabel} (${hallStartLabel} - ${hallEndLabel})\n\n` +
+      `📋 Services Selected: ${servicesCount}\n` +
+      `💰 Advance Amount: ${formatPrice(advanceAmount)}\n` +
+      `💰 Total Amount: ${formatPrice(grandTotal)}\n` +
+      `🧾 Txn ID: ${store.transactionId || 'Not provided'}\n` +
+      (screenshotLink
+        ? `\n🖼️ Screenshot: ${screenshotLink}`
+        : `\n⚠️ Screenshot: Upload pending`
+      );
 
     // Send booking details to WhatsApp
     try {
-      console.log('📱 Sending to WhatsApp number: +91 9698678450');
+      console.log('📱 Opening WhatsApp...');
       
       // Encode message for WhatsApp API
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
       
-      // WhatsApp Business API URL format (reliable method)
+      // WhatsApp Business API URL format
       const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
       
-      console.log('🔗 Opening WhatsApp with booking details...');
+      console.log('🔗 WhatsApp message length:', ownerMsg.length);
+      console.log('🔗 WhatsApp URL length:', whatsappUrl.length);
       
-      // Open WhatsApp in new tab
-      const whatsappWindow = window.open(whatsappUrl, '_blank', 'width=800,height=600');
-      
-      if (whatsappWindow) {
-        console.log('✅ WhatsApp window opened successfully');
-        
-        // Show success message
-        setTimeout(() => {
-          if (screenshotLink) {
-            toast.success('✅ WhatsApp opened with screenshot link!');
-          } else {
-            toast.success('✅ WhatsApp opened! Attach screenshot if needed.');
-          }
-        }, 1000);
+      // Show success message
+      if (screenshotLink) {
+        toast.success('✅ Opening WhatsApp with screenshot link...');
       } else {
-        throw new Error('WhatsApp window could not be opened');
+        toast.success('✅ Opening WhatsApp...');
       }
+      
+      // Don't reset immediately - open WhatsApp first
+      // Use a small delay to ensure toast is visible
+      setTimeout(() => {
+        // Try to open in a new tab first (better UX on desktop)
+        const whatsappWindow = window.open(whatsappUrl, '_blank');
+        
+        // If popup blocked, fallback to direct navigation
+        if (!whatsappWindow || whatsappWindow.closed) {
+          console.log('📱 Popup might be blocked, using direct navigation...');
+          window.location.href = whatsappUrl;
+        } else {
+          console.log('✅ WhatsApp opened in new window');
+          // Don't reset the page if WhatsApp opened in new tab
+        }
+      }, 300);
+      
     } catch (error) {
       console.error('❌ Error opening WhatsApp:', error);
-      
-      // Fallback: Show error but keep booking
-      toast.error('⚠️ Unable to open WhatsApp automatically. Please forward this message manually.');
-      
-      // Copy message to clipboard as fallback
-      try {
-        await navigator.clipboard.writeText(ownerMsg);
-        console.log('✅ Message copied to clipboard');
-        toast.info('Message copied to clipboard - paste in WhatsApp');
-      } catch (clipboardError) {
-        console.error('Could not copy to clipboard:', clipboardError);
-      }
+      toast.error('⚠️ Unable to open WhatsApp. Please try again.');
+      setIsSubmitting(false);
+      return;
     }
 
-    store.resetSelections();
-    setStep(0);
-    setIsSubmitting(false);
+    // Delay reset to allow WhatsApp to open
+    setTimeout(() => {
+      store.resetSelections();
+      setStep(0);
+      setIsSubmitting(false);
+    }, 1000);
   };
 
   const steps = [

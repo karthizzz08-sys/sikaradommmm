@@ -251,9 +251,10 @@ const BookingWizard = () => {
       toast.error(`⚠️ Screenshot upload failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
 
-    // Send screenshot + details to OWNER's WhatsApp (9698678450)
-    // Create a concise message (URLs have character limits)
+    // Create messages for both OWNER and CUSTOMER
     const servicesCount = getSelectionSummary().length;
+    
+    // Message to OWNER
     const ownerMsg = 
       `🏛️ *NEW BOOKING REQUEST*\n\n` +
       `👤 Customer: ${store.customerName}\n` +
@@ -270,40 +271,53 @@ const BookingWizard = () => {
         : `\n⚠️ Screenshot: Upload pending`
       );
 
-    // Send booking details to WhatsApp
+    // Message to CUSTOMER
+    const customerMsg = 
+      `🎉 *BOOKING CONFIRMATION*\n\n` +
+      `Thank you ${store.customerName}! Your booking request has been received.\n\n` +
+      `📅 Event Date: ${booking.date}\n` +
+      `🏛️ Hall: ${hallLabel}\n` +
+      `⏰ Time: ${hallStartLabel} - ${hallEndLabel}\n` +
+      `📋 Services: ${servicesCount} selected\n\n` +
+      `💰 Advance Amount: ${formatPrice(advanceAmount)}\n` +
+      `💰 Total Amount: ${formatPrice(grandTotal)}\n` +
+      `🧾 Booking ID: ${booking.id}\n\n` +
+      `✅ We will contact you soon to confirm the final details.\n` +
+      `For any queries, contact us at +91 9698678450`;
+
+    // Send messages to WhatsApp
     try {
-      console.log('📱 Opening WhatsApp...');
+      console.log('📱 Sending WhatsApp messages...');
       
-      // Encode message for WhatsApp API
+      // Encode messages
       const ownerMsgEncoded = encodeURIComponent(ownerMsg);
+      const customerMsgEncoded = encodeURIComponent(customerMsg);
       
-      // WhatsApp Business API URL format
-      const whatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
+      // WhatsApp URLs
+      const ownerWhatsappUrl = `https://wa.me/919698678450?text=${ownerMsgEncoded}`;
+      const customerWhatsappUrl = `https://wa.me/${store.customerPhone.replace(/\D/g, '')}?text=${customerMsgEncoded}`;
       
-      console.log('🔗 WhatsApp message length:', ownerMsg.length);
-      console.log('🔗 WhatsApp URL length:', whatsappUrl.length);
+      console.log('🔗 Owner Message length:', ownerMsg.length);
+      console.log('🔗 Customer Message length:', customerMsg.length);
       
       // Show success message
-      if (screenshotLink) {
-        toast.success('✅ Opening WhatsApp with screenshot link...');
-      } else {
-        toast.success('✅ Opening WhatsApp...');
-      }
+      toast.success('✅ Opening WhatsApp chats...');
       
-      // Don't reset immediately - open WhatsApp first
-      // Use a small delay to ensure toast is visible
+      // Open customer message first, then owner
       setTimeout(() => {
-        // Try to open in a new tab first (better UX on desktop)
-        const whatsappWindow = window.open(whatsappUrl, '_blank');
+        // Send to customer
+        const customerWindow = window.open(customerWhatsappUrl, '_blank');
+        console.log('📱 Customer chat window:', customerWindow ? 'opened' : 'blocked');
         
-        // If popup blocked, fallback to direct navigation
-        if (!whatsappWindow || whatsappWindow.closed) {
-          console.log('📱 Popup might be blocked, using direct navigation...');
-          window.location.href = whatsappUrl;
-        } else {
-          console.log('✅ WhatsApp opened in new window');
-          // Don't reset the page if WhatsApp opened in new tab
-        }
+        // Send to owner after a brief delay
+        setTimeout(() => {
+          const ownerWindow = window.open(ownerWhatsappUrl, '_blank');
+          if (!ownerWindow || ownerWindow.closed) {
+            console.log('📱 Popup might be blocked, using direct navigation for owner...');
+            window.location.href = ownerWhatsappUrl;
+          }
+          console.log('📱 Owner chat window:', ownerWindow ? 'opened' : 'navigating');
+        }, 800);
       }, 300);
       
     } catch (error) {
@@ -318,7 +332,7 @@ const BookingWizard = () => {
       store.resetSelections();
       setStep(0);
       setIsSubmitting(false);
-    }, 1000);
+    }, 2000);
   };
 
   const steps = [

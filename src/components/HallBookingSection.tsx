@@ -49,6 +49,7 @@ const HallBookingSection = () => {
   const [endAmPm, setEndAmPm] = useState<'AM' | 'PM'>('PM');
   const [bookings, setBookings] = useState<BookingSlot[]>([]);
   const [manualTimeMode, setManualTimeMode] = useState(false);
+  const [redBlockedDates, setRedBlockedDates] = useState<Date[]>([]);
 
   const selectedDateLabel = eventDate ? format(eventDate, 'PPP') : 'Select a date first';
 
@@ -58,6 +59,11 @@ const HallBookingSection = () => {
       fetchBookingsForDate();
     }
   }, [eventDate]);
+
+  // Fetch all red blocked dates (>= 15 hours after 5am)
+  useEffect(() => {
+    fetchRedBlockedDates();
+  }, []);
 
   const fetchBookingsForDate = async () => {
     const dateStr = format(eventDate!, 'yyyy-MM-dd');
@@ -70,6 +76,47 @@ const HallBookingSection = () => {
       setBookings(data as BookingSlot[]);
     } else {
       setBookings([]);
+    }
+  };
+
+  // Fetch all dates with >= 15 hours blocked after 5am
+  const fetchRedBlockedDates = async () => {
+    const { data } = await supabase.from('bookings').select('date, start_time, end_time');
+    if (data) {
+      const redDates: Date[] = [];
+      const dateMap = new Map<string, Array<{start_time: string, end_time: string}>>();
+      
+      data.forEach(booking => {
+        const dateStr = booking.date;
+        if (!dateMap.has(dateStr)) {
+          dateMap.set(dateStr, []);
+        }
+        dateMap.get(dateStr)!.push({start_time: booking.start_time, end_time: booking.end_time});
+      });
+      
+      dateMap.forEach((bookings, dateStr) => {
+        let totalBlockedMinutes = 0;
+        const DAY_START_MINUTES = 5 * 60; // 5am = 300 minutes
+        
+        bookings.forEach(booking => {
+          const [startH, startM] = booking.start_time.split(':').map(Number);
+          const [endH, endM] = booking.end_time.split(':').map(Number);
+          let startMinutes = startH * 60 + startM;
+          let endMinutes = endH * 60 + endM;
+          
+          if (endMinutes > DAY_START_MINUTES) {
+            startMinutes = Math.max(startMinutes, DAY_START_MINUTES);
+            totalBlockedMinutes += (endMinutes - startMinutes);
+          }
+        });
+        
+        const totalBlockedHours = totalBlockedMinutes / 60;
+        if (totalBlockedHours >= 15) {
+          redDates.push(new Date(dateStr + 'T00:00:00'));
+        }
+      });
+      
+      setRedBlockedDates(redDates);
     }
   };
 
@@ -225,6 +272,12 @@ const HallBookingSection = () => {
     }, 300);
   };
 
+  // Check if selected date is a red blocked date (>= 15 hours after 5am)
+  const isDateRedBlocked = (): boolean => {
+    if (!eventDate) return false;
+    return redBlockedDates.some(d => d.toDateString() === eventDate.toDateString());
+  };
+
   // Check if half-day plan conflicts with blocked times (without buffer)
   const checkHalfDayConflict = (mode: 'morning' | 'evening'): boolean => {
     // Special logic for evening plan: if owner update is before 4 PM, show as available (green)
@@ -245,7 +298,7 @@ const HallBookingSection = () => {
     
     const timeRange = mode === 'morning' 
       ? { start: '05:00', end: '16:00' }
-      : { start: '14:00', end: '22:00' };
+      : { start: '18:00', end: '22:00' };
 
     const startMinutes = parseTimeToMinutes(timeRange.start);
     const endMinutes = parseTimeToMinutes(timeRange.end);
@@ -273,7 +326,7 @@ const HallBookingSection = () => {
       ? hallHalfMode === 'morning'
         ? '5:00 AM - 4:00 PM (Tiffin + Lunch)'
         : hallHalfMode === 'evening'
-          ? '2:00 PM - 10:00 PM (Lunch + Dinner)'
+          ? '6:00 PM - 10:00 PM (Dinner)'
           : 'Select mode'
       : hallDuration === 'full'
         ? '4:00 PM - 4:00 PM Next Day'
@@ -294,6 +347,23 @@ const HallBookingSection = () => {
           <p className="section-subtitle mt-3">Choose your booking duration</p>
         </motion.div>
 
+        {isDateRedBlocked() ? (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-12 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-lg text-center"
+          >
+            <div className="text-4xl mb-3">🔴</div>
+            <h3 className="text-xl font-bold text-red-700 dark:text-red-300 mb-2">Hall Booking Not Available</h3>
+            <p className="text-red-600 dark:text-red-400 mb-4">
+              This date is fully booked. Hall bookings are not available for this date.
+            </p>
+            <p className="text-sm text-red-600 dark:text-red-400">
+              Please select a different date or explore other services below.
+            </p>
+          </motion.div>
+        ) : (
+          <>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           {hallDurations.map((d, i) => (
             <motion.button
@@ -302,6 +372,7 @@ const HallBookingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
+              disabled={d.id === 'full' && isDateRedBlocked()}
               onClick={() => {
                 const nextValue = hallDuration === d.id ? null : d.id;
                 setHallDuration(nextValue);
@@ -342,7 +413,11 @@ const HallBookingSection = () => {
                   }, 150);
                 }
               }}
-              className={`glass-card p-8 text-left transition-all cursor-pointer hover:scale-[1.02] ${
+              className={`glass-card p-8 text-left transition-all ${
+                d.id === 'full' && isDateRedBlocked()
+                  ? 'cursor-not-allowed opacity-60 border-red-400 bg-red-50/30 dark:bg-red-900/10'
+                  : 'cursor-pointer hover:scale-[1.02]'
+              } ${
                 hallDuration === d.id
                   ? 'ring-2 ring-primary border-primary bg-accent'
                   : ''
@@ -487,11 +562,12 @@ const HallBookingSection = () => {
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   { id: 'morning', label: 'Morning Half', time: '05:00 AM – 04:00 PM', description: 'Tiffin + Lunch' },
-                  { id: 'evening', label: 'Evening Half', time: '02:00 PM – 10:00 PM', description: 'Lunch + Dinner' }
+                  { id: 'evening', label: 'Evening Half', time: '06:00 PM – 10:00 PM', description: 'Dinner' }
                 ].map((half) => {
                   const isConflict = checkHalfDayConflict(half.id as 'morning' | 'evening');
+                  const isRedBlockedEvening = half.id === 'evening' && isDateRedBlocked();
                   const isSelected = hallHalfMode === half.id;
-                  const isAvailable = !isConflict;
+                  const isAvailable = !isConflict && !isRedBlockedEvening;
 
                   return (
                     <motion.button
@@ -639,6 +715,8 @@ const HallBookingSection = () => {
           )}
 
         </div>
+        </>
+        )}
 
         <div className="mb-16">
           <h3 className="font-display text-2xl font-bold text-foreground mb-6 text-center">Additional Charges</h3>

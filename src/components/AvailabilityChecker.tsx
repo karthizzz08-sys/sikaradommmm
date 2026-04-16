@@ -35,7 +35,7 @@
         const recentlyUpdatedDates: Date[] = [];
         const redUpdateDates: Date[] = [];
         
-        // Group bookings by date and calculate total blocked hours
+        // Group bookings by date and calculate total blocked hours after 5am
         const dateMap = new Map<string, Array<{start_time: string, end_time: string}>>();
         
         data.forEach(booking => {
@@ -46,24 +46,31 @@
           dateMap.get(dateStr)!.push({start_time: booking.start_time, end_time: booking.end_time});
         });
         
-        // Check total blocked hours for each date
+        // Check total blocked hours for each date (after 5am onwards)
         dateMap.forEach((bookings, dateStr) => {
           const bookingDate = new Date(dateStr + 'T00:00:00');
           
-          // Calculate total blocked hours
+          // Calculate total blocked hours from 5am (300 minutes) onwards
           let totalBlockedMinutes = 0;
+          const DAY_START_MINUTES = 5 * 60; // 5am = 300 minutes
+          
           bookings.forEach(booking => {
             const [startH, startM] = booking.start_time.split(':').map(Number);
             const [endH, endM] = booking.end_time.split(':').map(Number);
-            const startMinutes = startH * 60 + startM;
-            const endMinutes = endH * 60 + endM;
-            totalBlockedMinutes += (endMinutes - startMinutes);
+            let startMinutes = startH * 60 + startM;
+            let endMinutes = endH * 60 + endM;
+            
+            // Only count blocked time from 5am onwards
+            if (endMinutes > DAY_START_MINUTES) {
+              startMinutes = Math.max(startMinutes, DAY_START_MINUTES);
+              totalBlockedMinutes += (endMinutes - startMinutes);
+            }
           });
           
           const totalBlockedHours = totalBlockedMinutes / 60;
           
-          // If total blocked hours >= 18, mark as red
-          if (totalBlockedHours >= 18) {
+          // If total blocked hours >= 15 after 5am, mark as red
+          if (totalBlockedHours >= 15) {
             redUpdateDates.push(bookingDate);
           } else {
             // Otherwise violet (normal update)

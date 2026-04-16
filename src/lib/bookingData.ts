@@ -272,7 +272,7 @@ export interface EventItem {
 export const eventItems: EventItem[] = [
   // Welcome Setup
   { id: 'welcome-girls', name: 'Welcome Girls', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b1.jpeg' },
-  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 2000, unit: 'per 50 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b2.jpeg' },
+  { id: 'welcome-drinks', name: 'Welcome Drinks (Coffee/Tea/Buttermilk/Juice)', basePrice: 4000, unit: 'per 100 nos', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b2.jpeg' },
   { id: 'welcome-crackers', name: 'Welcome Crackers', basePrice: 1500, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Welcome Setup', image: '@/assets/b3.jpeg' },
   // Plates & Entry
   { id: 'valai-maram', name: 'Valai Maram', basePrice: 2000, unit: 'fixed', defaultQty: 1, minQty: 1, category: 'Plates & Entry', image: '@/assets/b4.jpeg' },

@@ -280,22 +280,6 @@ const HallBookingSection = () => {
 
   // Check if half-day plan conflicts with blocked times (without buffer)
   const checkHalfDayConflict = (mode: 'morning' | 'evening'): boolean => {
-    // Special logic for evening plan: if owner update is before 4 PM, show as available (green)
-    if (mode === 'evening') {
-      const latestUpdate = bookings
-        .filter(b => b.updated_at)
-        .map(b => new Date(b.updated_at!))
-        .sort((a, b) => b.getTime() - a.getTime())[0];
-      
-      if (latestUpdate) {
-        const updateHour = latestUpdate.getHours();
-        // If owner update time is before 4 PM (16:00), evening plan is green/available
-        if (updateHour < 16) {
-          return false; // Not conflicting, show as green
-        }
-      }
-    }
-    
     const timeRange = mode === 'morning' 
       ? { start: '05:00', end: '16:00' }
       : { start: '18:00', end: '22:00' };
@@ -303,12 +287,27 @@ const HallBookingSection = () => {
     const startMinutes = parseTimeToMinutes(timeRange.start);
     const endMinutes = parseTimeToMinutes(timeRange.end);
 
+    // Block if any booking overlaps with the half-day time range
     return bookings.some(booking => {
       const bookStart = parseTimeToMinutes(booking.start_time);
       const bookEnd = parseTimeToMinutes(booking.end_time);
       
       return startMinutes < bookEnd && endMinutes > bookStart;
     });
+  };
+
+  // Check if full day plan should be blocked based on latest booking end time
+  const isFullDayBlocked = (): boolean => {
+    if (bookings.length === 0) return false;
+    
+    // Find the latest (maximum) end time
+    const EVENING_THRESHOLD = 16 * 60; // 4:00 PM in minutes (960)
+    const latestEndTime = Math.max(
+      ...bookings.map(b => parseTimeToMinutes(b.end_time))
+    );
+    
+    // Block full day if latest end time is >= 4:00 PM (16:00)
+    return latestEndTime >= EVENING_THRESHOLD;
   };
 
   const timeBlockMessage = () => {
@@ -372,7 +371,6 @@ const HallBookingSection = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ delay: i * 0.1 }}
-              disabled={d.id === 'full' && isDateRedBlocked()}
               onClick={() => {
                 const nextValue = hallDuration === d.id ? null : d.id;
                 setHallDuration(nextValue);
@@ -413,11 +411,7 @@ const HallBookingSection = () => {
                   }, 150);
                 }
               }}
-              className={`glass-card p-8 text-left transition-all ${
-                d.id === 'full' && isDateRedBlocked()
-                  ? 'cursor-not-allowed opacity-60 border-red-400 bg-red-50/30 dark:bg-red-900/10'
-                  : 'cursor-pointer hover:scale-[1.02]'
-              } ${
+              className={`glass-card p-8 text-left transition-all cursor-pointer hover:scale-[1.02] ${
                 hallDuration === d.id
                   ? 'ring-2 ring-primary border-primary bg-accent'
                   : ''
@@ -565,9 +559,8 @@ const HallBookingSection = () => {
                   { id: 'evening', label: 'Evening Half', time: '06:00 PM – 10:00 PM', description: 'Dinner' }
                 ].map((half) => {
                   const isConflict = checkHalfDayConflict(half.id as 'morning' | 'evening');
-                  const isRedBlockedEvening = half.id === 'evening' && isDateRedBlocked();
                   const isSelected = hallHalfMode === half.id;
-                  const isAvailable = !isConflict && !isRedBlockedEvening;
+                  const isAvailable = !isConflict;
 
                   return (
                     <motion.button
@@ -640,78 +633,98 @@ const HallBookingSection = () => {
           )}
 
           {hallDuration === 'full' && (
-            <motion.div
-              id="hall-full-timing"
-              initial={{ opacity: 0, y: 10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-              className="mt-6 space-y-6"
-            >
-              {/* Full Day Plan Overview */}
+            isFullDayBlocked() ? (
               <motion.div
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-                className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 border-2 border-purple-200 dark:border-purple-700/50 rounded-lg p-6 space-y-4"
+                id="hall-full-timing"
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="mt-6 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-400 dark:border-red-600 rounded-lg text-center"
               >
-                <div className="flex items-center gap-3">
-                  <motion.div
-                    animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                    className="text-2xl"
-                  >
-                    ✨
-                  </motion.div>
-                  <h3 className="font-bold text-lg text-foreground">Full Day Plan Selected</h3>
-                </div>
-
-                <div className="space-y-3">
-                  <p className="text-sm text-purple-900 dark:text-purple-100 font-medium">Your booking time:</p>
-                  
-                  <motion.div
-                    initial={{ opacity: 0, y: 5 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, type: 'spring' }}
-                    className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-800/50 border border-purple-200 dark:border-purple-700/50"
-                  >
-                    <div className="text-center flex-1">
-                      <p className="text-xs text-muted-foreground mb-1">Start Time</p>
-                      <p className="text-2xl font-bold text-primary">4:00 PM</p>
-                      <p className="text-xs text-muted-foreground mt-1 uppercase">Today</p>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-2 px-4">
-                      <motion.div
-                        animate={{ x: [0, 5, 0] }}
-                        transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-                        className="text-2xl"
-                      >
-                        →
-                      </motion.div>
-                      <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">24 Hours</p>
-                    </div>
-
-                    <div className="text-center flex-1">
-                      <p className="text-xs text-muted-foreground mb-1">End Time</p>
-                      <p className="text-2xl font-bold text-primary">4:00 PM</p>
-                      <p className="text-xs text-muted-foreground mt-1 uppercase">Next Day</p>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.3 }}
-                    className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 border border-purple-300 dark:border-purple-700"
-                  >
-                    <p className="text-sm font-semibold text-purple-900 dark:text-purple-100 text-center">
-                      📅 {selectedDateLabel} to next day at 4:00 PM
-                    </p>
-                  </motion.div>
-                </div>
+                <div className="text-4xl mb-3">🔴</div>
+                <h3 className="text-xl font-bold text-red-700 dark:text-red-300 mb-2">Full Day Plan Not Available</h3>
+                <p className="text-red-600 dark:text-red-400 mb-4">
+                  This date cannot be booked for a full day plan due to existing bookings after 4:00 PM.
+                </p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Please choose the morning or evening half-day plan instead.
+                </p>
               </motion.div>
-            </motion.div>
+            ) : (
+              <motion.div
+                id="hall-full-timing"
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                className="mt-6 space-y-6"
+              >
+                {/* Full Day Plan Overview */}
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
+                  className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/30 dark:to-pink-900/30 border-2 border-purple-200 dark:border-purple-700/50 rounded-lg p-6 space-y-4"
+                >
+                  <div className="flex items-center gap-3">
+                    <motion.div
+                      animate={{ scale: [1, 1.1, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                      className="text-2xl"
+                    >
+                      ✨
+                    </motion.div>
+                    <h3 className="font-bold text-lg text-foreground">Full Day Plan Selected</h3>
+                  </div>
+
+                  <div className="space-y-3">
+                    <p className="text-sm text-purple-900 dark:text-purple-100 font-medium">Your booking time:</p>
+                    
+                    <motion.div
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2, type: 'spring' }}
+                      className="flex items-center justify-between p-4 rounded-lg bg-white dark:bg-slate-800/50 border border-purple-200 dark:border-purple-700/50"
+                    >
+                      <div className="text-center flex-1">
+                        <p className="text-xs text-muted-foreground mb-1">Start Time</p>
+                        <p className="text-2xl font-bold text-primary">4:00 PM</p>
+                        <p className="text-xs text-muted-foreground mt-1 uppercase">Today</p>
+                      </div>
+
+                      <div className="flex flex-col items-center gap-2 px-4">
+                        <motion.div
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+                          className="text-2xl"
+                        >
+                          →
+                        </motion.div>
+                        <p className="text-xs font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider">24 Hours</p>
+                      </div>
+
+                      <div className="text-center flex-1">
+                        <p className="text-xs text-muted-foreground mb-1">End Time</p>
+                        <p className="text-2xl font-bold text-primary">4:00 PM</p>
+                        <p className="text-xs text-muted-foreground mt-1 uppercase">Next Day</p>
+                      </div>
+                    </motion.div>
+
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 }}
+                      className="p-3 rounded-lg bg-purple-100 dark:bg-purple-900/40 border border-purple-300 dark:border-purple-700"
+                    >
+                      <p className="text-sm font-semibold text-purple-900 dark:text-purple-100 text-center">
+                        📅 {selectedDateLabel} to next day at 4:00 PM
+                      </p>
+                    </motion.div>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )
           )}
 
         </div>

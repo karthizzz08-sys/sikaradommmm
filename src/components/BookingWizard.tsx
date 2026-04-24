@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2, Mail } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Upload, MessageCircle, ClipboardList, UserCircle, CreditCard, CheckCircle2, Trash2, Mail, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import paymentQr from '@/assets/payment-qr.jpeg';
 import PriceSummary from '@/components/PriceSummary';
@@ -27,6 +27,7 @@ const BookingWizard = () => {
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookedDates, setBookedDates] = useState<Date[]>([]);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const store = useBookingStore();
 
   // Fetch all booked dates for calendar coloring
@@ -558,6 +559,12 @@ const BookingWizard = () => {
                     <p className="text-xs text-muted-foreground mt-1">Selected from availability checker</p>
                   </div>
                 )}
+                 {/* Terms & Conditions Link */}
+      <div className="mt-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-900 dark:text-blue-300">
+          📋 Please read our <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:opacity-80 transition-opacity">Terms & Conditions</a> before confirming your booking.
+        </p>
+      </div>
                 {!store.eventDate && (
                   <div className="space-y-3">
                     <label className="text-sm font-semibold text-foreground">Select Event Date *</label>
@@ -659,7 +666,15 @@ const BookingWizard = () => {
                   <label className="text-sm font-semibold text-foreground">Transaction ID <span className="text-muted-foreground">(optional)</span></label>
                   <Input value={store.transactionId} onChange={e => store.setTransactionId(e.target.value)} placeholder="Enter UPI Transaction ID (optional)" className="mt-1" />
                 </div>
+                {/* Terms & Conditions Link */}
+      <div className="mt-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-900 dark:text-blue-300">
+          📋 Please read our <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:opacity-80 transition-opacity">Terms & Conditions</a> before confirming your booking.
+        </p>
+      </div>
               </div>
+              
+              
             )}
 
             {step === 3 && (
@@ -683,9 +698,29 @@ const BookingWizard = () => {
                   <p><span className="font-semibold">Txn ID:</span> {store.transactionId || 'N/A'}</p>
                   {store.paymentScreenshot && <p><span className="font-semibold">Screenshot:</span> {store.paymentScreenshot.name} ✅</p>}
                 </div>
+
+                {/* Terms & Conditions Acceptance */}
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 space-y-3">
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      id="terms-accept"
+                      checked={acceptedTerms}
+                      onChange={(e) => setAcceptedTerms(e.target.checked)}
+                      className="w-5 h-5 mt-0.5 cursor-pointer accent-blue-600 dark:accent-blue-400"
+                    />
+                    <label htmlFor="terms-accept" className="text-sm text-blue-900 dark:text-blue-300 cursor-pointer leading-relaxed">
+                      I have read and accept the <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:opacity-80 transition-opacity inline-flex items-center gap-1">Terms & Conditions <ExternalLink className="w-3 h-3" /></a> for this booking.
+                    </label>
+                  </div>
+                  <p className="text-xs text-blue-800 dark:text-blue-400 pl-8">
+                    ℹ️ Please review our policies on advance payment, cancellation, damages, and other important terms before confirming.
+                  </p>
+                </div>
+
                 <Button 
                   onClick={handleSubmit} 
-                  disabled={isSubmitting || !store.paymentScreenshot} 
+                  disabled={isSubmitting || !store.paymentScreenshot || !acceptedTerms} 
                   className="gradient-violet text-primary-foreground px-6 sm:px-8 py-4 sm:py-6 text-base sm:text-lg rounded-full w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed" 
                   size="lg"
                 >
@@ -693,6 +728,11 @@ const BookingWizard = () => {
                     <>
                       <Mail className="w-5 h-5 mr-2 animate-spin" />
                       Sending...
+                    </>
+                  ) : !acceptedTerms ? (
+                    <>
+                      <Check className="w-5 h-5 mr-2" />
+                      Accept Terms to Proceed
                     </>
                   ) : (
                     <>

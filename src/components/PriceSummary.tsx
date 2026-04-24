@@ -144,6 +144,13 @@ const PriceSummary = ({ className = '' }: { className?: string }) => {
           ℹ️ <span className="font-semibold">Discount Threshold:</span> Bookings exceeding ₹3,00,000 automatically qualify for 10% discount
         </p>
       </div>
+
+      {/* Terms & Conditions Link */}
+      <div className="mt-4 px-3 py-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <p className="text-xs text-blue-900 dark:text-blue-300">
+          📋 Please read our <a href="/terms-and-conditions" target="_blank" rel="noopener noreferrer" className="font-bold underline hover:opacity-80 transition-opacity">Terms & Conditions</a> before confirming your booking.
+        </p>
+      </div>
     </motion.div>
   );
 };

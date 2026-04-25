@@ -217,7 +217,7 @@ const HallBookingSection = () => {
 
   const preset4HourSlots = [
     { id: 'morning', start: '10:00', end: '14:00', label: '10:00 AM - 2:00 PM' },
-    { id: 'evening', start: '18:00', end: '22:00', label: '6:00 PM - 10:00 PM' },
+    { id: 'evening', start: '14:00', end: '22:00', label: '2:00 PM - 10:00 PM' },
   ];
 
   const handle4HourPreset = (slot: typeof preset4HourSlots[0]) => {
@@ -325,7 +325,7 @@ const HallBookingSection = () => {
       ? hallHalfMode === 'morning'
         ? '5:00 AM - 4:00 PM (Tiffin + Lunch)'
         : hallHalfMode === 'evening'
-          ? '6:00 PM - 10:00 PM (Dinner)'
+          ? '2:00 PM - 10:00 PM (Lunch + Dinner)'
           : 'Select mode'
       : hallDuration === 'full'
         ? '4:00 PM - 4:00 PM Next Day'
@@ -556,7 +556,7 @@ const HallBookingSection = () => {
               <div className="grid gap-4 sm:grid-cols-2">
                 {[
                   { id: 'morning', label: 'Morning Half', time: '05:00 AM – 04:00 PM', description: 'Tiffin + Lunch' },
-                  { id: 'evening', label: 'Evening Half', time: '06:00 PM – 10:00 PM', description: 'Dinner' }
+                  { id: 'evening', label: 'Evening Half', time: '02:00 PM – 10:00 PM', description: 'Dinner' }
                 ].map((half) => {
                   const isConflict = checkHalfDayConflict(half.id as 'morning' | 'evening');
                   const isSelected = hallHalfMode === half.id;

@@ -16,10 +16,7 @@ const HeroSection = () => {
           </p>
         </motion.div>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-          <a href="#hall" className="gradient-violet px-8 py-4 rounded-full text-primary-foreground font-semibold text-lg shadow-lg hover:shadow-xl transition-shadow">
-            Explore Packages
-          </a>
-          <a href="#availability" className="border-2 border-primary-foreground/30 px-8 py-4 rounded-full text-primary-foreground font-semibold text-lg hover:bg-primary-foreground/10 transition-colors">
+          <a href="#availability" className="gradient-violet px-8 py-4 rounded-full text-primary-foreground font-semibold text-lg shadow-lg hover:shadow-xl transition-shadow">
             Check Availability
           </a>
         </motion.div>

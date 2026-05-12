@@ -217,7 +217,7 @@ const HallBookingSection = () => {
 
   const preset4HourSlots = [
     { id: 'morning', start: '10:00', end: '14:00', label: '10:00 AM - 2:00 PM' },
-    { id: 'evening', start: '14:00', end: '22:00', label: '2:00 PM - 10:00 PM' },
+    { id: 'evening', start: '18:00', end: '22:00', label: '6:00 PM - 10:00 PM' },
   ];
 
   const handle4HourPreset = (slot: typeof preset4HourSlots[0]) => {

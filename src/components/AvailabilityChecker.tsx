@@ -226,13 +226,13 @@
                 }}
                 modifiersStyles={{
                   ownerUpdatedOld: { backgroundColor: '#ef4444', color: '#fff', fontWeight: 'bold', border: '2px solid #dc2626' },
-                  booked: { backgroundColor: 'rgb(236, 199, 172)', color: '#fff', fontWeight: 'bold' },
+                  booked: { backgroundColor: 'rgb(241, 105, 7)', color: '#fff', fontWeight: 'bold' },
                   selectedAvailable: { backgroundColor: '#10b981', color: '#fff', fontWeight: 'bold', border: '3px solid #059669' },
                 }}
               />
               <div className="flex gap-4 mt-6 text-xs justify-center items-center flex-wrap">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-700/50">
-                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#dfb698', borderColor: '#f97316' }}></span>
+                  <span className="w-3 h-3 rounded" style={{ backgroundColor: '#ed7016', borderColor: '#f97316' }}></span>
                   <span className="text-foreground font-medium">Partially booked</span>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/50">

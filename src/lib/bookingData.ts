@@ -391,9 +391,10 @@ export const formatHallTimeRange = (start: string, end: string) => {
 
 export const additionalCharges: AdditionalCharge[] = [
   { id: 'electricity', label: 'Electricity (EB)', rate: '₹30', unit: 'per unit', icon: '⚡' },
-  { id: 'cleaning', label: 'Cleaning Charges', rate: '₹5,000', unit: 'fixed', icon: '🧹' },
+  { id: 'cleaning', label: 'Cleaning Charges', rate: '₹7,000', unit: 'fixed', icon: '🧹' },
   { id: 'gas', label: 'Gas Charges', rate: '₹220/kg', unit: 'if used', icon: '🔥' },
   { id: 'generator', label: 'Generator', rate: '₹2,500/hr', unit: 'if used', icon: '🔌' },
+  { id: 'ac', label: 'AC', rate: '₹2,000/hr', unit: 'if used', icon: '🔌' },
 ];
 
 export const extras: Extra[] = [
